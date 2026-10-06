@@ -321,3 +321,40 @@ it('lists incidents without an occurred time by their created time', function ()
         ->assertCanSeeTableRecords([$newer, $older], inOrder: true)
         ->assertTableColumnStateSet('occurred_at', $newer->created_at, $newer);
 });
+
+it('preloads the impacted components into the record update action', function () {
+    $incident = Incident::factory()->create();
+    $component = Component::factory()->create(['name' => 'API']);
+    $incident->components()->attach($component->id, ['component_status' => ComponentStatusEnum::major_outage]);
+
+    livewire(EditIncident::class, ['record' => $incident->getKey()])
+        ->mountAction('add-update')
+        ->assertActionDataSet(fn (array $data): bool => collect($data['components'] ?? [])
+            ->contains(function (array $row) use ($component): bool {
+                $status = $row['status'] instanceof ComponentStatusEnum
+                    ? $row['status']
+                    : ComponentStatusEnum::from((int) $row['status']);
+
+                return $row['id'] === $component->id
+                    && $status === ComponentStatusEnum::major_outage;
+            }));
+});
+
+it('updates the incident component statuses when recording an update', function () {
+    $incident = Incident::factory()->create(['status' => IncidentStatusEnum::investigating]);
+    $component = Component::factory()->create();
+    $incident->components()->attach($component->id, ['component_status' => ComponentStatusEnum::major_outage]);
+
+    livewire(EditIncident::class, ['record' => $incident->getKey()])
+        ->callAction('add-update', data: [
+            'message' => 'The API is recovering.',
+            'status' => IncidentStatusEnum::identified,
+            'components' => [
+                ['id' => $component->id, 'status' => ComponentStatusEnum::performance_issues->value],
+            ],
+        ])
+        ->assertHasNoActionErrors();
+
+    expect($incident->components()->first()->pivot->component_status)
+        ->toEqual(ComponentStatusEnum::performance_issues);
+});
