@@ -262,3 +262,18 @@ it('syncs the incident status when an update status is edited from the updates t
 
     expect($incident->fresh()->status)->toBe(IncidentStatusEnum::fixed);
 });
+
+it('lists incidents without an occurred time by their created time', function () {
+    $older = Incident::factory()->create([
+        'status' => IncidentStatusEnum::investigating,
+        'occurred_at' => now()->subDays(2),
+    ]);
+    $newer = Incident::factory()->create([
+        'status' => IncidentStatusEnum::investigating,
+        'occurred_at' => null,
+    ]);
+
+    livewire(ListIncidents::class)
+        ->assertCanSeeTableRecords([$newer, $older], inOrder: true)
+        ->assertTableColumnStateSet('occurred_at', $newer->created_at, $newer);
+});
