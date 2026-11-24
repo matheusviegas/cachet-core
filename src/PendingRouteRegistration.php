@@ -8,6 +8,7 @@ use Cachet\Http\Controllers\RssController;
 use Cachet\Http\Controllers\Setup\SetupController;
 use Cachet\Http\Controllers\SlackRssController;
 use Cachet\Http\Controllers\StatusPage\ComponentBadgeController;
+use Cachet\Http\Controllers\StatusPage\ComponentController;
 use Cachet\Http\Controllers\StatusPage\StatusBadgeController;
 use Cachet\Http\Controllers\StatusPage\StatusPageController;
 use Cachet\Http\Controllers\Subscribers\SubscriberController;
@@ -41,6 +42,7 @@ class PendingRouteRegistration
                 $router->get('/schedules/{schedule}', [StatusPageController::class, 'schedule'])->name('status-page.schedule');
                 $router->get('/badge.svg', StatusBadgeController::class)->name('status-page.badge');
                 $router->get('/components/{component}/badge.svg', ComponentBadgeController::class)->name('status-page.component.badge');
+                $router->get('/components/{component}', [ComponentController::class, 'show'])->whereNumber('component')->name('status-page.component');
 
                 $router->get('/setup', [SetupController::class, 'index'])->name('setup.index');
                 $router->post('/setup', [SetupController::class, 'store'])->name('setup.store');

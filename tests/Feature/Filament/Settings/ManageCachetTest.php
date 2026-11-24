@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament\Settings;
 
+use Cachet\Enums\ComponentLayoutEnum;
 use Cachet\Filament\Pages\Settings\ManageCachet;
 use Cachet\Settings\AppSettings;
 use Filament\Facades\Filament;
@@ -87,4 +88,15 @@ it('saves the mcp settings', function () {
     expect(app(AppSettings::class)->refresh())
         ->mcp_enabled->toBeTrue()
         ->mcp_protected->toBeFalse();
+});
+
+it('saves the component layout setting', function () {
+    expect(app(AppSettings::class)->component_layout)->toBe(ComponentLayoutEnum::groups);
+
+    livewire(ManageCachet::class)
+        ->fillForm(['component_layout' => ComponentLayoutEnum::list->value])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(AppSettings::class)->refresh()->component_layout)->toBe(ComponentLayoutEnum::list);
 });

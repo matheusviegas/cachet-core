@@ -49,6 +49,14 @@ return [
         'general_settings_title' => 'Configurações gerais',
         'incident_settings_title' => 'Configurações de incidentes',
         'display_settings_title' => 'Configurações de Exibição',
+        'component_layout' => [
+            'label' => 'Layout dos componentes',
+            'helper' => 'Grupos mostra todos os componentes em grupos recolhíveis. Lista adiciona busca, filtros, resumo por status e visão em grade, com paginação, para páginas de status com centenas ou milhares de componentes.',
+            'options' => [
+                'groups' => 'Grupos',
+                'list' => 'Lista com busca',
+            ],
+        ],
         'api_settings_title' => 'Configurações da API',
     ],
     'manage_customization' => [

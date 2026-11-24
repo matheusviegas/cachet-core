@@ -56,6 +56,14 @@ return [
         'general_settings_title' => 'General settings',
         'incident_settings_title' => 'Incident settings',
         'display_settings_title' => 'Display settings',
+        'component_layout' => [
+            'label' => 'Component layout',
+            'helper' => 'Groups shows every component in collapsible groups. List adds search, filters, a status summary and a grid view, and paginates, for status pages with hundreds or thousands of components.',
+            'options' => [
+                'groups' => 'Groups',
+                'list' => 'List with search',
+            ],
+        ],
         'api_settings_title' => 'API settings',
         'mcp_settings_title' => 'MCP server settings',
     ],

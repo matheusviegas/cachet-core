@@ -2,10 +2,12 @@
 
 namespace Cachet\Filament\Pages\Settings;
 
+use Cachet\Enums\ComponentLayoutEnum;
 use Cachet\Settings\AppSettings;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -91,6 +93,13 @@ class ManageCachet extends SettingsPage
                 Section::make(__('cachet::settings.manage_cachet.display_settings_title'))
                     ->columns(2)
                     ->schema([
+                        ToggleButtons::make('component_layout')
+                            ->label(__('cachet::settings.manage_cachet.component_layout.label'))
+                            ->helperText(__('cachet::settings.manage_cachet.component_layout.helper'))
+                            ->options(ComponentLayoutEnum::class)
+                            ->inline()
+                            ->required()
+                            ->columnSpanFull(),
                         Toggle::make('dashboard_login_link')
                             ->label(__('cachet::settings.manage_cachet.toggles.show_dashboard_link'))
                             ->helperText(__('cachet::settings.manage_cachet.toggles.show_dashboard_link_helper')),
