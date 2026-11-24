@@ -234,6 +234,35 @@ return [
 
     /*
      |--------------------------------------------------------------------------
+     | Cachet Uptime History
+     |--------------------------------------------------------------------------
+     |
+     | cachet:record-uptime stores one row per component per day, refreshed
+     | every fifteen minutes. Rows older than the retention are pruned by
+     | the model:prune scheduled task.
+     |
+     */
+    'uptime' => [
+        'retention_days' => (int) env('CACHET_UPTIME_RETENTION_DAYS', 365),
+    ],
+
+    /*
+     |--------------------------------------------------------------------------
+     | Cachet Component List
+     |--------------------------------------------------------------------------
+     |
+     | Used by the "list" component layout of the status page. The list is
+     | paginated, and the grid view shows at most grid_limit components
+     | before asking the visitor to narrow the filters.
+     |
+     */
+    'component_list' => [
+        'per_page' => (int) env('CACHET_COMPONENT_LIST_PER_PAGE', 50),
+        'grid_limit' => (int) env('CACHET_COMPONENT_GRID_LIMIT', 2000),
+    ],
+
+    /*
+     |--------------------------------------------------------------------------
      | Cachet Webhooks
      |--------------------------------------------------------------------------
      |

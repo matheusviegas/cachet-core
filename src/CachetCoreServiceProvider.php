@@ -10,6 +10,7 @@ use Cachet\Commands\MakeUserCommand;
 use Cachet\Commands\NotifyCompletedSchedulesCommand;
 use Cachet\Commands\NotifyLongRunningIncidentsCommand;
 use Cachet\Commands\PublishScheduledCommand;
+use Cachet\Commands\RecordUptimeCommand;
 use Cachet\Commands\SendBeaconCommand;
 use Cachet\Commands\VersionCommand;
 use Cachet\Database\Seeders\DatabaseSeeder;
@@ -20,6 +21,7 @@ use Cachet\Mcp\CachetServer;
 use Cachet\Models\Component;
 use Cachet\Models\ComponentCheck;
 use Cachet\Models\ComponentGroup;
+use Cachet\Models\ComponentUptimeDay;
 use Cachet\Models\Incident;
 use Cachet\Models\Schedule;
 use Cachet\Models\Subscriber;
@@ -341,6 +343,7 @@ class CachetCoreServiceProvider extends ServiceProvider
                 NotifyCompletedSchedulesCommand::class,
                 NotifyLongRunningIncidentsCommand::class,
                 PublishScheduledCommand::class,
+                RecordUptimeCommand::class,
                 SendBeaconCommand::class,
                 VersionCommand::class,
             ]);
@@ -379,8 +382,10 @@ class CachetCoreServiceProvider extends ServiceProvider
 
             $schedule->command('cachet:publish-scheduled')->everyMinute();
 
+            $schedule->command('cachet:record-uptime')->everyFifteenMinutes()->withoutOverlapping();
+
             $schedule->command('model:prune', [
-                '--model' => [WebhookAttempt::class, ComponentCheck::class],
+                '--model' => [WebhookAttempt::class, ComponentCheck::class, ComponentUptimeDay::class],
             ])->daily();
 
             $schedule->command('db:seed', [

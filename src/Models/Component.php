@@ -188,6 +188,16 @@ class Component extends Model implements Metable
     }
 
     /**
+     * Get the recorded daily uptime of the component.
+     *
+     * @return HasMany<ComponentUptimeDay, $this>
+     */
+    public function uptimeDays(): HasMany
+    {
+        return $this->hasMany(ComponentUptimeDay::class);
+    }
+
+    /**
      * Get the recorded changes to the component's baseline status.
      *
      * @return HasMany<ComponentStatusChange, $this>
