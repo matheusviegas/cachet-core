@@ -232,6 +232,47 @@ it('rejects an incident update with an unknown component', function () {
     $response->assertUnprocessable();
 });
 
+it('rejects an incident update that lists a component twice', function () {
+    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+
+    $incident = Incident::factory()->create();
+    $component = Component::factory()->create();
+
+    $response = postJson("/status/api/incidents/{$incident->id}/updates", [
+        'status' => IncidentStatusEnum::identified->value,
+        'message' => 'The API is recovering.',
+        'components' => [
+            ['id' => $component->id, 'status' => ComponentStatusEnum::operational->value],
+            ['id' => $component->id, 'status' => ComponentStatusEnum::major_outage->value],
+        ],
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['components.0.id', 'components.1.id']);
+
+    expect($incident->updates()->count())->toBe(0);
+});
+
+it('rejects an incident update with an unknown component status', function () {
+    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+
+    $incident = Incident::factory()->create();
+    $component = Component::factory()->create();
+
+    $response = postJson("/status/api/incidents/{$incident->id}/updates", [
+        'status' => IncidentStatusEnum::identified->value,
+        'message' => 'The API is recovering.',
+        'components' => [
+            ['id' => $component->id, 'status' => 999],
+        ],
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['components.0.status']);
+
+    expect($incident->components()->count())->toBe(0);
+});
+
 it('cannot update an incident update if not authenticated', function () {
     $incidentUpdate = Update::factory()->forIncident()->create();
 

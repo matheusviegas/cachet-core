@@ -329,15 +329,18 @@ it('preloads the impacted components into the record update action', function ()
 
     livewire(EditIncident::class, ['record' => $incident->getKey()])
         ->mountAction('add-update')
-        ->assertActionDataSet(fn (array $data): bool => collect($data['components'] ?? [])
-            ->contains(function (array $row) use ($component): bool {
-                $status = $row['status'] instanceof ComponentStatusEnum
-                    ? $row['status']
-                    : ComponentStatusEnum::from((int) $row['status']);
+        ->assertActionDataSet(function (array $data) use ($component): array {
+            // The closure's return value is only asserted when it is an array, so assert here.
+            $rows = collect($data['components'] ?? [])->values();
+            $status = $rows[0]['status'] ?? null;
 
-                return $row['id'] === $component->id
-                    && $status === ComponentStatusEnum::major_outage;
-            }));
+            expect($rows)->toHaveCount(1)
+                ->and($rows[0]['id'])->toBe($component->id)
+                ->and($status instanceof ComponentStatusEnum ? $status : ComponentStatusEnum::tryFrom((int) $status))
+                ->toBe(ComponentStatusEnum::major_outage);
+
+            return [];
+        });
 });
 
 it('updates the incident component statuses when recording an update', function () {
