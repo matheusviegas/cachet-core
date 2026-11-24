@@ -7,7 +7,7 @@ use Cachet\Cachet;
 use Cachet\Data\Requests\ScheduleUpdate\CreateScheduleUpdateRequestData;
 use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\ScheduleStatusEnum;
-use Cachet\Filament\Components\ComponentOptions;
+use Cachet\Filament\Components\ComponentSelect;
 use Cachet\Filament\Resources\Schedules\Pages\CreateSchedule;
 use Cachet\Filament\Resources\Schedules\Pages\EditSchedule;
 use Cachet\Filament\Resources\Schedules\Pages\ListSchedules;
@@ -34,6 +34,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -79,11 +80,9 @@ class ScheduleResource extends Resource
                         ->defaultItems(0)
                         ->addActionLabel(__('cachet::schedule.form.add_component.action_label'))
                         ->schema([
-                            Select::make('component_id')
+                            ComponentSelect::make('component_id')
                                 ->label(__('cachet::schedule.form.add_component.component_label'))
-                                ->preload()
                                 ->required()
-                                ->options(fn (): array => ComponentOptions::forSelect())
                                 ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
                             ToggleButtons::make('component_status')
                                 ->label(__('cachet::schedule.form.add_component.status_label'))
@@ -164,6 +163,11 @@ class ScheduleResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('components')
+                    ->label(trans_choice('cachet::component.resource_label', 2))
+                    ->relationship('components', 'name')
+                    ->searchable()
+                    ->multiple(),
                 Filter::make('unpublished')
                     ->label(__('cachet::schedule.list.filters.scheduled'))
                     ->query(fn (ScheduleBuilder $query): ScheduleBuilder => $query->unpublished()),

@@ -5,7 +5,9 @@ namespace Tests\Feature\Filament\Resources;
 use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Filament\Resources\Components\Pages\CreateComponent;
 use Cachet\Filament\Resources\Components\Pages\EditComponent;
+use Cachet\Filament\Resources\Components\Pages\ListComponents;
 use Cachet\Models\Component;
+use Cachet\Models\ComponentGroup;
 use Filament\Facades\Filament;
 use Workbench\App\User;
 
@@ -84,4 +86,36 @@ it('is filterable through the API after being written from the dashboard', funct
     $response->assertOk();
     $response->assertJsonCount(1, 'data');
     $response->assertJsonPath('data.0.attributes.meta', ['region' => 'eu-west-1']);
+});
+
+it('filters components by status, group, tag and enabled state', function () {
+    $group = ComponentGroup::factory()->create();
+    $down = Component::factory()->for($group, 'group')->create(['status' => ComponentStatusEnum::major_outage]);
+    $up = Component::factory()->create(['status' => ComponentStatusEnum::operational]);
+    $disabled = Component::factory()->create(['status' => ComponentStatusEnum::operational, 'enabled' => false]);
+    $down->syncTags(['finance']);
+
+    livewire(ListComponents::class)
+        ->filterTable('status', [ComponentStatusEnum::major_outage->value])
+        ->assertCanSeeTableRecords([$down])
+        ->assertCanNotSeeTableRecords([$up, $disabled])
+        ->resetTableFilters()
+        ->filterTable('group', $group->id)
+        ->assertCanSeeTableRecords([$down])
+        ->assertCanNotSeeTableRecords([$up, $disabled])
+        ->resetTableFilters()
+        ->filterTable('tags', [$down->tags->first()->id])
+        ->assertCanSeeTableRecords([$down])
+        ->assertCanNotSeeTableRecords([$up, $disabled])
+        ->resetTableFilters()
+        ->filterTable('enabled', false)
+        ->assertCanSeeTableRecords([$disabled])
+        ->assertCanNotSeeTableRecords([$down, $up]);
+});
+
+it('does not offer to list every component on one page', function () {
+    livewire(ListComponents::class)
+        ->assertSuccessful();
+
+    expect(livewire(ListComponents::class)->instance()->getTable()->getPaginationPageOptions())->toBe([10, 25, 50, 100]);
 });

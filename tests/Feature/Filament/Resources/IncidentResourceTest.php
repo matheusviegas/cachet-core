@@ -5,7 +5,6 @@ namespace Tests\Feature\Filament\Resources;
 use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Enums\ResourceVisibilityEnum;
-use Cachet\Filament\Components\ComponentOptions;
 use Cachet\Filament\Resources\Components\RelationManagers\ComponentsRelationManager;
 use Cachet\Filament\Resources\Incidents\IncidentResource;
 use Cachet\Filament\Resources\Incidents\Pages\CreateIncident;
@@ -13,7 +12,6 @@ use Cachet\Filament\Resources\Incidents\Pages\EditIncident;
 use Cachet\Filament\Resources\Incidents\Pages\ListIncidents;
 use Cachet\Filament\Resources\Updates\RelationManagers\UpdatesRelationManager;
 use Cachet\Models\Component;
-use Cachet\Models\ComponentGroup;
 use Cachet\Models\Incident;
 use Cachet\Models\Subscriber;
 use Cachet\Notifications\NewIncidentNotification;
@@ -126,23 +124,6 @@ it('notifies subscribers when creating an incident from the dashboard', function
     Notification::assertSentTo($subscriber, NewIncidentNotification::class);
 });
 
-it('groups component selections by component group when creating an incident', function () {
-    $firstGroup = ComponentGroup::factory()->create(['name' => 'First Group', 'order' => 1]);
-    $secondGroup = ComponentGroup::factory()->create(['name' => 'Second Group', 'order' => 2]);
-
-    Component::factory()->for($firstGroup, 'group')->create(['name' => 'Webservice']);
-    Component::factory()->for($secondGroup, 'group')->create(['name' => 'Webservice']);
-    Component::factory()->create(['name' => 'Ungrouped Service']);
-
-    livewire(CreateIncident::class)
-        ->fillForm([
-            'incidentComponents' => [['component_id' => null]],
-        ])
-        ->assertSeeInOrder(['First Group', 'Second Group', 'Ungrouped components'])
-        ->assertSee('Webservice')
-        ->assertSee('Ungrouped Service');
-});
-
 it('sorts incidents by their canonical status column', function () {
     $fixed = Incident::factory()->create(['status' => IncidentStatusEnum::fixed]);
     $investigating = Incident::factory()->create(['status' => IncidentStatusEnum::investigating]);
@@ -228,17 +209,6 @@ it('translates the update form', function () {
         ->assertFormFieldExists('message', fn (MarkdownEditor $field): bool => $field->getLabel() === 'Nachricht')
         ->assertFormFieldExists('user_id', fn (Select $field): bool => $field->getLabel() === 'Benutzer'
             && $field->getHint() === 'Benutzer, welcher den Vorfall gemeldet hat.');
-});
-
-it('excludes already attached components from the attach action options', function () {
-    $incident = Incident::factory()->create();
-    $attached = Component::factory()->create(['name' => 'Already Attached']);
-
-    $incident->components()->attach($attached->id, ['component_status' => ComponentStatusEnum::operational->value]);
-
-    $options = ComponentOptions::forSelect($incident);
-
-    expect(collect($options)->flatten()->all())->not->toContain('Already Attached');
 });
 
 it('syncs the incident status when an update is deleted from the updates tab', function () {
@@ -360,4 +330,16 @@ it('updates the incident component statuses when recording an update', function 
 
     expect($incident->components()->first()->pivot->component_status)
         ->toEqual(ComponentStatusEnum::performance_issues);
+});
+
+it('filters incidents by an affected component', function () {
+    $component = Component::factory()->create();
+    $affected = Incident::factory()->create();
+    $unaffected = Incident::factory()->create();
+    $affected->components()->attach($component->id, ['component_status' => ComponentStatusEnum::major_outage]);
+
+    livewire(ListIncidents::class)
+        ->filterTable('components', [$component->id])
+        ->assertCanSeeTableRecords([$affected])
+        ->assertCanNotSeeTableRecords([$unaffected]);
 });

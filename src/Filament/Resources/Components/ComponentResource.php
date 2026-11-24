@@ -22,6 +22,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class ComponentResource extends Resource
@@ -141,8 +143,23 @@ class ComponentResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->label(__('cachet::component.list.headers.status'))
+                    ->options(ComponentStatusEnum::class)
+                    ->multiple(),
+                SelectFilter::make('group')
+                    ->label(__('cachet::component.list.headers.group'))
+                    ->relationship('group', 'name')
+                    ->searchable(),
+                SelectFilter::make('tags')
+                    ->label(__('cachet::component.list.filters.tags'))
+                    ->relationship('tags', 'name')
+                    ->searchable()
+                    ->multiple(),
+                TernaryFilter::make('enabled')
+                    ->label(__('cachet::component.list.headers.enabled')),
             ])
+            ->paginated([10, 25, 50, 100])
             ->recordActions([
                 EditAction::make(),
             ])

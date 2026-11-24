@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'components' => [
+        'effective_status' => 'Effective status',
+        'baseline_status' => 'Baseline status',
+    ],
     'system_health' => [
         'empty' => 'No components have been configured yet.',
         'add_component' => 'Add a component',

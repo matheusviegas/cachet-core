@@ -20,10 +20,17 @@ return [
             'description' => 'Components represent the various parts of your system that can affect the status of your status page.',
         ],
         'ungrouped' => 'Ungrouped components',
+        'filters' => [
+            'tags' => 'Tags',
+        ],
     ],
     'attach' => [
         'heading' => 'Attach components',
         'placeholder' => 'Select components',
+    ],
+    'select' => [
+        'search_prompt' => 'Type to search components by name or group',
+        'no_results' => 'No components match your search.',
     ],
     'last_updated' => 'Last updated :timestamp',
     'description_label' => 'About :component',

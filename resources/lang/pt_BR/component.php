@@ -17,6 +17,10 @@ return [
             'heading' => 'Componentes',
             'description' => 'Os componentes representam as várias partes do seu sistema que podem afetar o status da sua página de status.',
         ],
+        'ungrouped' => 'Componentes sem grupo',
+        'filters' => [
+            'tags' => 'Tags',
+        ],
     ],
     'last_updated' => 'Última atualização :timestamp',
     'view_details' => 'Ver Detalhes',
@@ -43,5 +47,9 @@ return [
     'overview' => [
         'operational_components_label' => 'Componentes Operacionais',
         'operational_components_description' => 'Componentes que estão totalmente operacionais.',
+    ],
+    'select' => [
+        'search_prompt' => 'Digite para buscar componentes por nome ou grupo',
+        'no_results' => 'Nenhum componente encontrado.',
     ],
 ];

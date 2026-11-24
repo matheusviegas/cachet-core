@@ -8,7 +8,7 @@ use Cachet\Data\Requests\IncidentUpdate\CreateIncidentUpdateRequestData;
 use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Enums\ResourceVisibilityEnum;
-use Cachet\Filament\Components\ComponentOptions;
+use Cachet\Filament\Components\ComponentSelect;
 use Cachet\Filament\Resources\Incidents\Pages\CreateIncident;
 use Cachet\Filament\Resources\Incidents\Pages\EditIncident;
 use Cachet\Filament\Resources\Incidents\Pages\ListIncidents;
@@ -96,11 +96,9 @@ class IncidentResource extends Resource
                         ->defaultItems(0)
                         ->addActionLabel(__('cachet::incident.form.add_component.action_label'))
                         ->schema([
-                            Select::make('component_id')
+                            ComponentSelect::make('component_id')
                                 ->label(__('cachet::incident.form.add_component.component_label'))
-                                ->preload()
                                 ->required()
-                                ->options(fn (): array => ComponentOptions::forSelect())
                                 ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
                             ToggleButtons::make('component_status')
                                 ->label(__('cachet::incident.form.add_component.status_label'))
@@ -212,6 +210,11 @@ class IncidentResource extends Resource
                 SelectFilter::make('status')
                     ->label(__('cachet::incident.list.headers.status'))
                     ->options(IncidentStatusEnum::class),
+                SelectFilter::make('components')
+                    ->label(trans_choice('cachet::component.resource_label', 2))
+                    ->relationship('components', 'name')
+                    ->searchable()
+                    ->multiple(),
                 Filter::make('unpublished')
                     ->label(__('cachet::incident.list.filters.scheduled'))
                     ->query(fn (Builder $query): Builder => $query
@@ -288,11 +291,9 @@ class IncidentResource extends Resource
                         ->values()
                         ->all())
                     ->schema([
-                        Select::make('id')
+                        ComponentSelect::make('id')
                             ->label(__('cachet::incident.form.add_component.component_label'))
-                            ->preload()
                             ->required()
-                            ->options(fn (): array => ComponentOptions::forSelect())
                             ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
                         ToggleButtons::make('status')
                             ->label(__('cachet::incident.form.add_component.status_label'))

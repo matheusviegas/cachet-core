@@ -51,6 +51,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Facades\Mcp;
+use Spatie\LaravelSettings\Settings;
 use Spatie\LaravelSettings\SettingsContainer;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
@@ -69,6 +70,7 @@ class CachetCoreServiceProvider extends ServiceProvider
         $this->app->singleton(Cachet::class);
         $this->app->singleton(ViewManager::class);
         $this->app->scoped(Status::class);
+        $this->app->scoped(EffectiveComponentStatuses::class);
         $this->app->register(BadgerServiceProvider::class);
 
         $this->configureSettingsCache();
@@ -78,7 +80,7 @@ class CachetCoreServiceProvider extends ServiceProvider
     /**
      * The settings classes shipped by Cachet.
      *
-     * @var list<class-string<\Spatie\LaravelSettings\Settings>>
+     * @var list<class-string<Settings>>
      */
     private const SETTINGS_CLASSES = [
         AppSettings::class,
