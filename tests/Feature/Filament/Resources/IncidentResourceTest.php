@@ -20,6 +20,8 @@ use Cachet\Notifications\NewIncidentNotification;
 use Cachet\Settings\MailSettings;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\Notification;
 use Workbench\App\User;
@@ -200,6 +202,32 @@ it('translates the update and component relation managers', function () {
         ->assertTableColumnExists('created_at', fn (TextColumn $column): bool => $column->getLabel() === 'Erstellt am');
 
     expect(ComponentsRelationManager::getTitle($incident, EditIncident::class))->toBe('Komponenten');
+});
+
+it('translates the incident user field', function () {
+    app()->setLocale('de');
+
+    livewire(CreateIncident::class)
+        ->assertFormFieldExists('user_id', fn (Select $field): bool => $field->getLabel() === 'Benutzer');
+});
+
+it('translates the update form', function () {
+    app()->setLocale('de');
+    $incident = Incident::factory()->create();
+    $update = $incident->updates()->create([
+        'message' => 'Cause identified.',
+        'status' => IncidentStatusEnum::identified,
+        'user_id' => auth()->id(),
+    ]);
+
+    livewire(UpdatesRelationManager::class, [
+        'ownerRecord' => $incident,
+        'pageClass' => EditIncident::class,
+    ])
+        ->mountAction(TestAction::make('edit')->table($update))
+        ->assertFormFieldExists('message', fn (MarkdownEditor $field): bool => $field->getLabel() === 'Nachricht')
+        ->assertFormFieldExists('user_id', fn (Select $field): bool => $field->getLabel() === 'Benutzer'
+            && $field->getHint() === 'Benutzer, welcher den Vorfall gemeldet hat.');
 });
 
 it('excludes already attached components from the attach action options', function () {
