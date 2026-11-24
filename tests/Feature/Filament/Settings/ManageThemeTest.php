@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament\Settings;
 
+use Cachet\Enums\ThemeModeEnum;
 use Cachet\Filament\Pages\Settings\ManageTheme;
 use Cachet\Settings\ThemeSettings;
 use Filament\Facades\Filament;
@@ -24,6 +25,10 @@ beforeEach(function () {
         'cachet.uploads.max_size' => 256,
         'cachet.uploads.image_mime_types' => ['image/jpeg', 'image/png'],
     ]);
+});
+
+it('renders the manage theme page', function () {
+    $this->get(ManageTheme::getUrl())->assertOk();
 });
 
 it('hides the duplicate banner field label beneath the section heading', function () {
@@ -86,3 +91,14 @@ it('allows saving when a banner image is already stored', function () {
 
     expect(app(ThemeSettings::class)->refresh()->app_banner)->toBe('app-banner.png');
 });
+
+it('saves the theme mode setting', function (ThemeModeEnum $mode) {
+    expect(app(ThemeSettings::class)->theme_mode)->toBe(ThemeModeEnum::auto);
+
+    livewire(ManageTheme::class)
+        ->fillForm(['theme_mode' => $mode->value])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(ThemeSettings::class)->refresh()->theme_mode)->toBe($mode);
+})->with([ThemeModeEnum::light, ThemeModeEnum::dark, ThemeModeEnum::auto]);
