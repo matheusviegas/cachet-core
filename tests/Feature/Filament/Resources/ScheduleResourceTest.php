@@ -60,3 +60,15 @@ it('filters schedules by an affected component', function () {
         ->assertCanSeeTableRecords([$affected])
         ->assertCanNotSeeTableRecords([$unaffected]);
 });
+
+it('keeps the completion time of a recorded update when the edit form is saved afterwards', function () {
+    $schedule = Schedule::factory()->inProgress()->create();
+
+    livewire(EditSchedule::class, ['record' => $schedule->getKey()])
+        ->callAction('add-update', data: ['message' => 'Done.', 'completed_at' => now()->subMinute()->toDateTimeString()])
+        ->assertHasNoActionErrors()
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($schedule->fresh()->completed_at)->not->toBeNull();
+});

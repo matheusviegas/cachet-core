@@ -4,6 +4,7 @@ namespace Cachet\Filament\Resources\Updates\RelationManagers;
 
 use Cachet\Actions\Incident\SyncIncidentStatus;
 use Cachet\Enums\IncidentStatusEnum;
+use Cachet\Filament\Resources\Incidents\Pages\EditIncident;
 use Cachet\Models\Incident;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -121,8 +122,13 @@ class UpdatesRelationManager extends RelationManager
     {
         $incident = $this->getOwnerRecord();
 
-        if ($incident instanceof Incident) {
-            app(SyncIncidentStatus::class)->handle($incident);
+        if (! $incident instanceof Incident) {
+            return;
         }
+
+        app(SyncIncidentStatus::class)->handle($incident);
+
+        // The edit page form holds the status it was loaded with; let it reload.
+        $this->dispatch(EditIncident::STATUS_SYNCED_EVENT);
     }
 }
