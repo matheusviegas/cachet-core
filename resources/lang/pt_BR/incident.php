@@ -80,6 +80,9 @@ return [
             'status_label' => 'Status',
             'user_label' => 'Usuário',
             'user_helper' => 'Quem reportou este incidente.',
+            'components_label' => 'Componentes',
+            'components_helper' => 'Atualize o status dos componentes afetados por este incidente.',
+            'components_add_action_label' => 'Adicionar status de componente',
         ],
     ],
     'overview' => [

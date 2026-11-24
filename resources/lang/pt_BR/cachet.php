@@ -15,4 +15,11 @@ return [
         'posted_at' => 'Publicado :date',
     ],
     'rss_feed' => 'RSS Feed :name',
+    'and' => 'e',
+    'theme' => [
+        'label' => 'Tema',
+        'auto' => 'Sistema',
+        'light' => 'Claro',
+        'dark' => 'Escuro',
+    ],
 ];

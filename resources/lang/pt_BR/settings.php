@@ -74,6 +74,17 @@ return [
     'manage_theme' => [
         'app_banner_label' => 'Imagem do Banner',
         'app_banner_helper' => 'Uma imagem exibida no topo da página de status.',
+        'theme_mode' => [
+            'heading' => 'Aparência',
+            'description' => 'Escolha como a página de status aparece para os visitantes.',
+            'label' => 'Tema',
+            'helper' => 'Automático segue a preferência do dispositivo de cada visitante e permite que ele escolha um tema. Claro e escuro forçam a página de status nesse tema.',
+            'modes' => [
+                'auto' => 'Automático (Sistema)',
+                'light' => 'Claro',
+                'dark' => 'Escuro',
+            ],
+        ],
         'status_page_accent' => [
             'heading' => 'Cor de Destaque da Página de Status',
             'description' => 'Personalize a cor de destaque da sua página de status. O Cachet pode selecionar automaticamente uma cor base correspondente.',
