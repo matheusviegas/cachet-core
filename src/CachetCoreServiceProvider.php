@@ -25,7 +25,9 @@ use Cachet\Models\Schedule;
 use Cachet\Models\Subscriber;
 use Cachet\Models\WebhookAttempt;
 use Cachet\Settings\AppSettings;
+use Cachet\Settings\CustomizationSettings;
 use Cachet\Settings\MailSettings;
+use Cachet\Settings\ThemeSettings;
 use Cachet\View\Composers\MailThemeComposer;
 use Cachet\View\ViewManager;
 use Dedoc\Scramble\Scramble;
@@ -49,6 +51,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Mcp\Facades\Mcp;
+use Spatie\LaravelSettings\SettingsContainer;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
 
@@ -69,6 +72,46 @@ class CachetCoreServiceProvider extends ServiceProvider
         $this->app->register(BadgerServiceProvider::class);
 
         $this->configureSettingsCache();
+        $this->registerSettingsClasses();
+    }
+
+    /**
+     * The settings classes shipped by Cachet.
+     *
+     * @var list<class-string<\Spatie\LaravelSettings\Settings>>
+     */
+    private const SETTINGS_CLASSES = [
+        AppSettings::class,
+        CustomizationSettings::class,
+        MailSettings::class,
+        ThemeSettings::class,
+    ];
+
+    /**
+     * Register Cachet's settings classes with spatie/laravel-settings.
+     *
+     * Auto-discovery only scans the host application, so without this every
+     * resolution built a new instance and read the settings table, bypassing
+     * the settings cache entirely (one query per rendered component).
+     */
+    private function registerSettingsClasses(): void
+    {
+        config()->set('settings.settings', array_values(array_unique([
+            ...(array) config('settings.settings', []),
+            ...self::SETTINGS_CLASSES,
+        ])));
+    }
+
+    /**
+     * Bind the settings classes as scoped instances when the settings provider registered first.
+     */
+    private function bindSettingsClasses(): void
+    {
+        if ($this->app->bound(AppSettings::class)) {
+            return;
+        }
+
+        $this->app->make(SettingsContainer::class)->clearCache()->registerBindings();
     }
 
     /**
@@ -101,6 +144,8 @@ class CachetCoreServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->bindSettingsClasses();
+
         if (! $this->app->configurationIsCached()) {
             $this->mergeConfigFrom(__DIR__.'/../config/cachet.php', 'cachet');
         }
