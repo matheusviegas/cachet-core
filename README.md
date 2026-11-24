@@ -67,6 +67,32 @@ Login to the account at `/dashboard` and use credentials:
 - **Email:** `test@test.com`
 - **Password:** `test123`
 
+## Large Status Pages
+
+For status pages with hundreds or thousands of components, switch **Settings → Manage Cachet → Component layout** to **List with search**. The list layout renders the same amount of work whatever the number of components:
+
+- a summary of components by effective status, where each count is a filter;
+- search by name, group and tag filters, and sorting, all in the URL so results can be shared;
+- a paginated list (`CACHET_COMPONENT_LIST_PER_PAGE`, 50 by default);
+- a grid view with one colored tile per component (`CACHET_COMPONENT_GRID_LIMIT`, 2000 by default);
+- a page per component at `/components/{id}` with its uptime, incidents, maintenance and status changes.
+
+Uptime history is read from the `component_uptime_days` table. The scheduler refreshes the last two days every fifteen minutes. Backfill it once after upgrading:
+
+```bash
+php artisan cachet:record-uptime --days=90
+```
+
+Rows older than `CACHET_UPTIME_RETENTION_DAYS` (365 by default) are pruned daily.
+
+## Roadmap
+
+Planned work for large deployments, such as monitoring RPA robots:
+
+- [ ] **Bulk status endpoint.** Update the status of many components in one API request. The API allows 300 requests per minute per user (`CACHET_API_RATE_LIMIT`), so 1500 components reporting every minute through one token would be throttled.
+- [ ] **Heartbeat (dead man's switch).** Move a component to unknown or major outage when it has not reported for a configurable time. Today a component that stops reporting stays in its last status.
+- [ ] **Overall status by percentage or critical groups.** With thousands of components, at least one is usually degraded, so the status summary nearly always shows a partial outage.
+
 ## Sponsors
 
 <p align="center">
