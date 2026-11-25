@@ -128,6 +128,8 @@ return [
     'manage_theme' => [
         'app_banner_label' => 'Banner image',
         'app_banner_helper' => 'An image displayed at the top of the status page.',
+        'favicon_label' => 'Favicon',
+        'favicon_helper' => 'The icon shown in browser tabs on the status page and the dashboard. PNG or ICO, square, at least 32×32 pixels. With dynamic favicons on, the status icon replaces it during incidents and maintenance.',
         'theme_mode' => [
             'heading' => 'Appearance',
             'description' => 'Choose how the status page appears to visitors.',

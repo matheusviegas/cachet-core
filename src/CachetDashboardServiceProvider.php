@@ -7,6 +7,7 @@ use Cachet\Filament\Pages\EditProfile;
 use Cachet\Http\Middleware\AuthenticateSession;
 use Cachet\Http\Middleware\SetAppLocale;
 use Cachet\Settings\AppSettings;
+use Cachet\View\Favicon;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Forms\Components\Toggle;
 use Filament\Http\Middleware\Authenticate;
@@ -54,7 +55,7 @@ class CachetDashboardServiceProvider extends PanelProvider
                 'purple' => Color::Purple,
                 'gray' => Color::Zinc,
             ])
-            ->favicon('/vendor/cachethq/cachet/favicon.ico')
+            ->favicon(fn (): string => rescue(fn (): string => app(Favicon::class)->dashboardUrl(), asset('vendor/cachethq/cachet/favicon.ico'), report: false))
             ->viteTheme('resources/css/dashboard/theme.css', 'vendor/cachethq/cachet/build')
             ->discoverResources(__DIR__.'/Filament/Resources', 'Cachet\\Filament\\Resources')
             ->discoverPages(__DIR__.'/Filament/Pages', 'Cachet\\Filament\\Pages')

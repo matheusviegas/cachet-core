@@ -6,6 +6,7 @@ use Cachet\Cachet;
 use Cachet\Data\Cachet\ThemeData;
 use Cachet\Enums\ThemeModeEnum;
 use Cachet\Settings\ThemeSettings;
+use Cachet\View\Favicon;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
@@ -51,6 +52,19 @@ class ManageTheme extends SettingsPage
                         ->hiddenLabel()
                         ->helperText(__('cachet::settings.manage_theme.app_banner_helper'))
                         ->disk((string) config('cachet.uploads.disk'))
+                        ->columnSpanFull(),
+                ]),
+
+                Section::make(__('cachet::settings.manage_theme.favicon_label'))->columns(2)->schema([
+                    FileUpload::make('favicon')
+                        ->acceptedFileTypes(Favicon::UPLOAD_MIME_TYPES)
+                        ->maxSize((int) config('cachet.uploads.max_size'))
+                        ->preventFilePathTampering(allowFilePathUsing: fn (string $file): bool => Storage::disk((string) config('cachet.uploads.disk'))->exists($file))
+                        ->label(__('cachet::settings.manage_theme.favicon_label'))
+                        ->hiddenLabel()
+                        ->helperText(__('cachet::settings.manage_theme.favicon_helper'))
+                        ->disk((string) config('cachet.uploads.disk'))
+                        ->directory('favicons')
                         ->columnSpanFull(),
                 ]),
 

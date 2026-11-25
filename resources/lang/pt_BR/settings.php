@@ -129,6 +129,8 @@ return [
     'manage_theme' => [
         'app_banner_label' => 'Imagem do Banner',
         'app_banner_helper' => 'Uma imagem exibida no topo da página de status.',
+        'favicon_label' => 'Favicon',
+        'favicon_helper' => 'O ícone exibido nas abas do navegador na página de status e no painel. PNG ou ICO, quadrado, com pelo menos 32×32 pixels. Com o favicon dinâmico ligado, o ícone de status o substitui durante incidentes e manutenções.',
         'theme_mode' => [
             'heading' => 'Aparência',
             'description' => 'Escolha como a página de status aparece para os visitantes.',

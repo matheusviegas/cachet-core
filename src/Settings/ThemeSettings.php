@@ -9,6 +9,8 @@ class ThemeSettings extends Settings
 {
     public ?string $app_banner;
 
+    public ?string $favicon = null;
+
     public ?string $accent;
 
     public ?string $accent_content;

@@ -102,3 +102,60 @@ it('saves the theme mode setting', function (ThemeModeEnum $mode) {
 
     expect(app(ThemeSettings::class)->refresh()->theme_mode)->toBe($mode);
 })->with([ThemeModeEnum::light, ThemeModeEnum::dark, ThemeModeEnum::auto]);
+
+it('uploads a favicon', function () {
+    livewire(ManageTheme::class)
+        ->fillForm(['favicon' => UploadedFile::fake()->create('brand.png', 16, 'image/png')])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $path = app(ThemeSettings::class)->refresh()->favicon;
+
+    expect($path)->not->toBeNull();
+    Storage::disk('public')->assertExists($path);
+});
+
+it('accepts ICO favicons', function (string $mimeType) {
+    livewire(ManageTheme::class)
+        ->fillForm(['favicon' => UploadedFile::fake()->create('brand.ico', 16, $mimeType)])
+        ->call('save')
+        ->assertHasNoFormErrors();
+})->with(['image/x-icon', 'image/vnd.microsoft.icon']);
+
+it('rejects favicons that could run scripts or are not icons', function (string $name, string $mimeType) {
+    livewire(ManageTheme::class)
+        ->fillForm(['favicon' => UploadedFile::fake()->create($name, 16, $mimeType)])
+        ->call('save')
+        ->assertHasFormErrors(['favicon']);
+})->with([
+    'svg' => ['brand.svg', 'image/svg+xml'],
+    'html' => ['brand.html', 'text/html'],
+]);
+
+it('rejects favicons larger than the configured maximum', function () {
+    livewire(ManageTheme::class)
+        ->fillForm(['favicon' => UploadedFile::fake()->create('brand.png', 257, 'image/png')])
+        ->call('save')
+        ->assertHasFormErrors(['favicon']);
+});
+
+it('allows saving when a favicon is already stored and removing it', function () {
+    Storage::disk('public')->put('brand.png', 'fake-icon-bytes');
+
+    $settings = app(ThemeSettings::class);
+    $settings->favicon = 'brand.png';
+    $settings->save();
+
+    livewire(ManageTheme::class)
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(ThemeSettings::class)->refresh()->favicon)->toBe('brand.png');
+
+    livewire(ManageTheme::class)
+        ->fillForm(['favicon' => null])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(app(ThemeSettings::class)->refresh()->favicon)->toBeNull();
+});

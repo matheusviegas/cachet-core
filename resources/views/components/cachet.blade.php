@@ -26,13 +26,16 @@
         </script>
         @endif
 
-        @if ($favicon)
+        {{-- A status favicon during incidents and maintenance wins over the uploaded one. --}}
+        @if ($statusFavicon)
         <link rel="icon" href="{{ asset('vendor/cachethq/cachet/favicon.ico') }}" sizes="32x32" />
-        <link rel="icon" href="{{ $favicon }}" type="image/svg+xml" sizes="any" />
+        <link rel="icon" href="{{ $statusFavicon }}" type="image/svg+xml" sizes="any" />
+        @elseif ($customFavicon)
+        <link rel="icon" href="{{ $customFavicon['url'] }}" type="{{ $customFavicon['type'] }}" />
         @else
         <link rel="shortcut icon" href="{{ asset('vendor/cachethq/cachet/favicon.ico') }}" />
         @endif
-        <link rel="apple-touch-icon" href="{{ asset('vendor/cachethq/cachet/apple-touch-icon.png') }}" />
+        <link rel="apple-touch-icon" href="{{ $appleTouchIcon }}" />
 
         <title>{{ $title ?: config('cachet.title', 'Cachet') }}</title>
         <meta name="title" content="{{ $title ?: config('cachet.title', 'Cachet') }}" />
