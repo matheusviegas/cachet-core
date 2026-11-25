@@ -30,7 +30,7 @@ it('renders the schedule page', function () {
         ->assertSee('Maintenance window confirmed.');
 });
 
-it('translates the affected components label', function () {
+it('translates the affected components label and links each component', function () {
     $settings = app(AppSettings::class);
     $settings->locale = 'de';
     $settings->save();
@@ -44,7 +44,13 @@ it('translates the affected components label', function () {
 
     get(route('cachet.status-page.schedule', ['schedule' => $schedule]))
         ->assertOk()
-        ->assertSee('Betroffene Komponenten: Database und Website')
+        ->assertSeeInOrder([
+            'Betroffene Komponenten:',
+            'href="'.route('cachet.status-page.component', $database).'"',
+            'Database',
+            'href="'.route('cachet.status-page.component', $website).'"',
+            'Website',
+        ], escape: false)
         ->assertDontSee('Affected Components');
 });
 

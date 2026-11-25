@@ -570,7 +570,7 @@ it('renders the status page in the configured locale', function () {
     expect(app()->getLocale())->toBe('de');
 });
 
-it('translates the affected components label of incidents', function () {
+it('translates the affected components label of incidents and links each component', function () {
     $settings = app(AppSettings::class);
     $settings->locale = 'de';
     $settings->save();
@@ -584,7 +584,13 @@ it('translates the affected components label of incidents', function () {
 
     $this->get(route('cachet.status-page'))
         ->assertOk()
-        ->assertSee('Betroffene Komponenten: API und Website')
+        ->assertSeeInOrder([
+            'Betroffene Komponenten:',
+            'href="'.route('cachet.status-page.component', $api).'"',
+            'API',
+            'href="'.route('cachet.status-page.component', $website).'"',
+            'Website',
+        ], escape: false)
         ->assertDontSee('Affected Components');
 });
 

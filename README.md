@@ -139,14 +139,11 @@ Changes on top of upstream [`cachethq/core@8ae3e2c`](https://github.com/cachethq
 - Tests for every change above, including the translated dashboard labels (`7a48f596`) and stricter tests for update component statuses (`af67db18`).
 - Tests fail when a pt-BR key is missing, or when a translation drops a placeholder or a plural form (`b632d26d`).
 - The status page list runs the same number of queries regardless of the number of components.
+- The affected components tests on the status and schedule pages check the component links added in `6efae483`.
 
 ### Documentation
 
 - This README: large status pages and roadmap (`90f3daa6`), cache requirements (`19bf15f3`) and this changelog.
-
-### Known issues
-
-- `StatusPageTest` ("translates the affected components label of incidents") and `SchedulePageTest` ("translates the affected components label") still expect the affected components as plain text, which `6efae483` replaced with pills.
 
 ## Cache Requirements
 
