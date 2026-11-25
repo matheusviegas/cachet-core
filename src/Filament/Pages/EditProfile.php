@@ -2,6 +2,7 @@
 
 namespace Cachet\Filament\Pages;
 
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -35,6 +36,23 @@ class EditProfile extends \Filament\Auth\Pages\EditProfile
             ->heading(__('filament-panels::auth/pages/edit-profile.multi_factor_authentication.label'));
     }
 
+    /**
+     * The dashboard language, or the browser's language when left on the system default.
+     */
+    protected function getPreferredLocaleFormComponent(): Component
+    {
+        return Select::make('preferred_locale')
+            ->label(__('cachet::user.form.preferred_locale'))
+            ->helperText(__('cachet::user.form.preferred_locale_helper'))
+            ->options([
+                '' => __('cachet::user.form.preferred_locale_system_default'),
+                ...config('cachet.supported_locales', []),
+            ])
+            ->selectablePlaceholder(false)
+            ->formatStateUsing(fn (?string $state): string => $state ?? '')
+            ->dehydrateStateUsing(fn (?string $state): ?string => blank($state) ? null : $state);
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema
@@ -45,6 +63,12 @@ class EditProfile extends \Filament\Auth\Pages\EditProfile
                     ->schema([
                         $this->getNameFormComponent(),
                         $this->getEmailFormComponent(),
+                    ]),
+
+                Section::make(__('cachet::user.preferences_section_title'))
+                    ->columns(2)
+                    ->schema([
+                        $this->getPreferredLocaleFormComponent(),
                     ]),
 
                 Section::make(__('cachet::user.security_section_title'))

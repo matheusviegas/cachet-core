@@ -14,7 +14,8 @@ class SetAppLocale
         $user = $request->user();
 
         if ($user) {
-            app()->setLocale($user->preferredLocale() ?? $request->getPreferredLanguage(
+            // An empty preference means "System default", so it follows the browser too.
+            app()->setLocale(filled($user->preferredLocale()) ? $user->preferredLocale() : $request->getPreferredLanguage(
                 array_keys(config('cachet.supported_locales'))
             ));
         }

@@ -4,6 +4,7 @@ return [
     'resource_label' => 'User|Users',
     'profile_information_title' => 'Profile information',
     'security_section_title' => 'Password and security',
+    'preferences_section_title' => 'Preferences',
     'list' => [
         'headers' => [
             'name' => 'Name',
@@ -25,6 +26,7 @@ return [
         'password_confirmation_label' => 'Confirm password',
         'preferred_locale' => 'Preferred locale',
         'preferred_locale_system_default' => 'System default',
+        'preferred_locale_helper' => 'The language of the dashboard. System default follows your browser language.',
         'is_admin_label' => 'Admin',
     ],
 ];
