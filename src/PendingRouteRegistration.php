@@ -76,13 +76,16 @@ class PendingRouteRegistration
         $this->registerEmailVerificationRoutes();
     }
 
+    /**
+     * The signed link proves the request came from the user's inbox, so it
+     * works without signing in. Users created in the dashboard often open it
+     * before their first login.
+     */
     private function registerEmailVerificationRoutes(): void
     {
-        Route::middleware('auth')->group(function () {
-            Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-                ->middleware(['signed', 'throttle:6,1'])
-                ->name('verification.verify');
-        });
+        Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+            ->middleware(['signed', 'throttle:6,1'])
+            ->name('verification.verify');
     }
 
     /**

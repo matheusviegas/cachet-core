@@ -130,6 +130,7 @@ Changes on top of upstream [`cachethq/core@8ae3e2c`](https://github.com/cachethq
 - **New users defaulted to English** (`561230ef`). `users.preferred_locale` no longer defaults to `en`, so new users follow the system default.
 - **"System default" language ignored** (`2243f7ab`). An empty preferred locale now falls back to the browser language.
 - **Literal `:name` in the "update recorded" toast in pt-BR** (`b632d26d`).
+- **Email verification link failed with a 500 error**. The `verify-email` route required a signed-in user but had no session middleware, so it always redirected guests to a `login` route the app does not define. The signed link now verifies the address without signing in.
 
 ### Performance
 
