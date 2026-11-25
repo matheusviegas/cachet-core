@@ -85,6 +85,69 @@ php artisan cachet:record-uptime --days=90
 
 Rows older than `CACHET_UPTIME_RETENTION_DAYS` (365 by default) are pruned daily.
 
+## Fork Changelog
+
+Changes on top of upstream [`cachethq/core@8ae3e2c`](https://github.com/cachethq/core/commit/8ae3e2c0aed1027ce675f652a91d5745cb15ef14) (2026-11-02), in 25 commits. Commits taken from upstream pull requests keep their original authors and reference the pull request.
+
+### Features
+
+- **List layout for large status pages** (`d2a6cac1`). A new *Component layout* setting adds a list layout next to the default group layout. It has:
+  - counters per effective status, each acting as a filter;
+  - search by name, filters by group and tag, sorting, all kept in the URL;
+  - a paginated list (50 per page), most severe first;
+  - a grid view with one colored tile per component;
+  - a page per component at `/components/{id}` with 90 days of uptime, incidents, maintenance and status changes;
+  - 90-day uptime bars for all components and for each group, when *Display system status* is on.
+- **Daily uptime rollup** (`9a9da5fe`). The `component_uptime_days` table and the `cachet:record-uptime` command, scheduled every fifteen minutes, store one row per component per day.
+- **Server-side component search in the dashboard** (`efbc8fd9`).
+  - Every component picker searches on the server and returns at most 50 results: incident and maintenance forms, record update, and attach actions.
+  - New component filters on the incident and maintenance tables.
+  - New status, group, tag and enabled filters on the components table.
+  - The dashboard components widget is a paginated, searchable table with inline status changes.
+- **Status page theme mode** (`3e564ecf`, based on [#479](https://github.com/cachethq/core/pull/479), closes [#68](https://github.com/cachethq/core/issues/68)). Automatic, light or dark, with a visitor toggle in automatic mode.
+- **Component statuses on incident updates** (`cce87b9e`, `98687d76` by Mitul Patel, [#481](https://github.com/cachethq/core/pull/481), closes [#194](https://github.com/cachethq/core/issues/194)). Recording an update can change the status of the affected components, from the dashboard and the API.
+- **Dashboard language in the profile** (`2243f7ab`). Every user can choose the dashboard language, or the system default, which follows the browser.
+- **Toasts for dashboard actions** (`b28d10e8`). Verifying a subscriber, completing a schedule, sending a user's verification email, granting or revoking admin access, updating a webhook secret and changing a status in the components widget now show a success toast.
+- **Affected components as links** (`6efae483`). Incidents and maintenance on the status page list their affected components as pills linking to each component page.
+
+### Bug fixes
+
+- **Settings read once per component** (`e1c525f8`). Cachet's settings classes were never registered with laravel-settings, so every read queried the database and skipped the cache. With 1500 components the status page ran 1548 settings queries.
+- **Fixed incident reverted on save** (`20035af7`). Recording an update from the incident edit page and then saving the form wrote the old status back. The maintenance edit page lost the completion time set by an update in the same way.
+- **Incident status after editing or deleting updates** (`a84c4d2e` by Jay Hemnani, [#497](https://github.com/cachethq/core/pull/497), fixes [#494](https://github.com/cachethq/core/issues/494)).
+- **Incidents without "Occurred at"** (`9f1d3e18` by Jay Hemnani, [#498](https://github.com/cachethq/core/pull/498), fixes [#495](https://github.com/cachethq/core/issues/495)). They now show and sort by their created time.
+- **Group status in the system status view** (`17a403a5` by Jay Hemnani, [#503](https://github.com/cachethq/core/pull/503), fixes [#484](https://github.com/cachethq/core/issues/484)).
+- **Saving Manage Theme with a stored banner** (`3e060ad7` by VincentBorgers, [#480](https://github.com/cachethq/core/pull/480), fixes [#467](https://github.com/cachethq/core/issues/467) and [#471](https://github.com/cachethq/core/issues/471)).
+- **New users defaulted to English** (`561230ef`). `users.preferred_locale` no longer defaults to `en`, so new users follow the system default.
+- **"System default" language ignored** (`2243f7ab`). An empty preferred locale now falls back to the browser language.
+- **Literal `:name` in the "update recorded" toast in pt-BR** (`b632d26d`).
+
+### Performance
+
+- **Redundant index removed** (`aeb76aa3`, fixes [#465](https://github.com/cachethq/core/issues/465)). The single-column `incident_components.incident_id` index was covered by the composite unique.
+- With 1500 components, the status page went from 3.6 s, 4.8 MB and 1578 queries to 0.4 s, 1.2 MB and 29 queries in the list layout. The 90-day history went from 94 s and 499 MB of HTML to a precomputed read (`e1c525f8`, `efbc8fd9`, `9a9da5fe`, `d2a6cac1`).
+
+### Translations
+
+- **Hardcoded English labels translated** (`dc85ba56`, `50254bf4` by jnk0, [#504](https://github.com/cachethq/core/pull/504)).
+- **pt-BR for the new texts** (`bcd111c1`).
+- **pt-BR complete** (`b632d26d`). The 142 keys that only existed in English are translated, and two footer strings left in English were fixed.
+- **pt-BR "De" / "Até" labels** on the incident timeline (`6efae483`).
+
+### Tests
+
+- Tests for every change above, including the translated dashboard labels (`7a48f596`) and stricter tests for update component statuses (`af67db18`).
+- Tests fail when a pt-BR key is missing, or when a translation drops a placeholder or a plural form (`b632d26d`).
+- The status page list runs the same number of queries regardless of the number of components.
+
+### Documentation
+
+- This README: large status pages and roadmap (`90f3daa6`), cache requirements (`19bf15f3`) and this changelog.
+
+### Known issues
+
+- `StatusPageTest` ("translates the affected components label of incidents") and `SchedulePageTest` ("translates the affected components label") still expect the affected components as plain text, which `6efae483` replaced with pills.
+
 ## Cache Requirements
 
 The dashboard's success toasts ("Created", "Saved", and so on) are stored in the application cache between requests, in the store set by `filament.cache_store` (the default cache store when unset). Use a persistent cache:
