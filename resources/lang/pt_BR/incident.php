@@ -18,6 +18,8 @@ return [
         'past_incidents_header' => 'Incidentes Anteriores',
         'recent_incidents_header' => 'Incidentes Recentes',
         'no_incidents_reported_between' => 'Nenhum incidente reportado entre :from e :to',
+        'from_label' => 'De',
+        'to_label' => 'Até',
         'navigate' => [
             'previous' => 'Anterior',
             'today' => 'Hoje',

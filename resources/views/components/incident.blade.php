@@ -52,7 +52,13 @@
 
                 @if ($incident->components->isNotEmpty())
                     <div data-slot="affected-components" class="text-xs text-zinc-500 dark:text-zinc-400">
-                        {{ __('cachet::incident.affected_components_header') }}: {{ $incident->components->pluck('name')->join(', ', ' '.__('cachet::cachet.and').' ') }}
+                        {{ __('cachet::incident.affected_components_header') }}:
+                        
+                        @foreach ($incident->components as $component)
+                            <a href="{{ route('cachet.status-page.component', ['component' => $component]) }}" class="inline-block bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-300 rounded-full px-2 py-1 text-xs font-medium me-1">
+                                {{ $component->name }}
+                            </a>
+                        @endforeach
                     </div>
                 @endif
             </div>
@@ -122,7 +128,13 @@
 
                 @if ($schedule->components->isNotEmpty())
                     <div data-slot="affected-components" class="text-xs text-zinc-500 dark:text-zinc-400">
-                        {{ __('cachet::incident.affected_components_header') }}: {{ $schedule->components->pluck('name')->join(', ', ' '.__('cachet::cachet.and').' ') }}
+                        {{ __('cachet::incident.affected_components_header') }}:
+                        
+                        @foreach ($schedule->components as $component)
+                            <a href="{{ route('cachet.status-page.component', ['component' => $component]) }}" class="inline-block bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-300 rounded-full px-2 py-1 text-xs font-medium me-1">
+                                {{ $component->name }}
+                            </a>
+                        @endforeach
                     </div>
                 @endif
 
