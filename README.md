@@ -87,7 +87,7 @@ Rows older than `CACHET_UPTIME_RETENTION_DAYS` (365 by default) are pruned daily
 
 ## Fork Changelog
 
-Changes on top of upstream [`cachethq/core@8ae3e2c`](https://github.com/cachethq/core/commit/8ae3e2c0aed1027ce675f652a91d5745cb15ef14) (2026-11-02), in 25 commits. Commits taken from upstream pull requests keep their original authors and reference the pull request.
+Changes on top of upstream [`cachethq/core@8ae3e2c`](https://github.com/cachethq/core/commit/8ae3e2c0aed1027ce675f652a91d5745cb15ef14) (2026-11-02). Commits taken from upstream pull requests keep their original authors and reference the pull request.
 
 ### Features
 
@@ -108,6 +108,7 @@ Changes on top of upstream [`cachethq/core@8ae3e2c`](https://github.com/cachethq
 - **Component statuses on incident updates** (`cce87b9e`, `98687d76` by Mitul Patel, [#481](https://github.com/cachethq/core/pull/481), closes [#194](https://github.com/cachethq/core/issues/194)). Recording an update can change the status of the affected components, from the dashboard and the API.
 - **Dashboard language in the profile** (`2243f7ab`). Every user can choose the dashboard language, or the system default, which follows the browser.
 - **Toasts for dashboard actions** (`b28d10e8`). Verifying a subscriber, completing a schedule, sending a user's verification email, granting or revoking admin access, updating a webhook secret and changing a status in the components widget now show a success toast.
+- **Custom favicon** (`a1e352fc`). Manage Theme accepts a PNG or ICO favicon for the status page and the dashboard. With dynamic favicons on, the status icon replaces it during incidents and maintenance.
 - **Affected components as links** (`6efae483`). Incidents and maintenance on the status page list their affected components as pills linking to each component page.
 
 ### Bug fixes
@@ -139,7 +140,7 @@ Changes on top of upstream [`cachethq/core@8ae3e2c`](https://github.com/cachethq
 - Tests for every change above, including the translated dashboard labels (`7a48f596`) and stricter tests for update component statuses (`af67db18`).
 - Tests fail when a pt-BR key is missing, or when a translation drops a placeholder or a plural form (`b632d26d`).
 - The status page list runs the same number of queries regardless of the number of components.
-- The affected components tests on the status and schedule pages check the component links added in `6efae483`.
+- The affected components tests on the status and schedule pages check the component links added in `6efae483` (`68b07559`).
 
 ### Documentation
 
