@@ -18,6 +18,7 @@ return [
         'past_incidents_header' => 'Incidentes Anteriores',
         'recent_incidents_header' => 'Incidentes Recentes',
         'no_incidents_reported_between' => 'Nenhum incidente reportado entre :from e :to',
+        'date_range_label' => 'Período dos incidentes',
         'from_label' => 'De',
         'to_label' => 'Até',
         'navigate' => [
@@ -57,6 +58,8 @@ return [
         'name_label' => 'Nome',
         'status_label' => 'Status',
         'message_label' => 'Mensagem',
+        'private_note_label' => 'Nota privada',
+        'private_note_helper' => 'Visível apenas no painel. Nunca é exibida na página de status nem incluída nas respostas da API, nos webhooks ou nas notificações aos inscritos.',
         'occurred_at_label' => 'Ocorrido em',
         'occurred_at_helper' => 'O horário de criação do incidente será usado se deixado em branco.',
         'published_at_label' => 'Publicado em',
@@ -64,9 +67,11 @@ return [
         'visible_label' => 'Visível',
         'user_label' => 'Usuário',
         'user_helper' => 'O usuário que reportou o incidente.',
+        'notify_subscribers_label' => 'Notificar os inscritos sobre este incidente.',
         'notifications_label' => 'Notificar Inscritos?',
         'pin_incident_label' => 'Fixar o incidente no topo da página de status.',
         'guid_label' => 'UUID do Incidente',
+        'meta_label' => 'Metadados',
         'add_component' => [
             'action_label' => 'Adicionar Componente',
             'header' => 'Componentes',
@@ -74,9 +79,18 @@ return [
             'status_label' => 'Status',
         ],
     ],
+    'mail' => [
+        'long_running' => [
+            'subject' => 'Incidente precisa de atenção: :incident',
+            'heading' => 'Este incidente precisa de atenção',
+            'body' => 'Não há atividade neste incidente desde :since. Considere publicar uma atualização para manter seus inscritos informados ou marque-o como resolvido.',
+            'button' => 'Gerenciar incidente',
+        ],
+    ],
     'record_update' => [
-        'success_title' => 'Incidente :name Atualizado',
-        'success_body' => 'Uma nova atualização do incidente foi registrada.',
+        'new_update_label' => 'Nova atualização',
+        'success_title' => 'Atualização registrada',
+        'success_body' => 'Você publicou uma nova atualização em :name.',
         'form' => [
             'message_label' => 'Mensagem',
             'status_label' => 'Status',

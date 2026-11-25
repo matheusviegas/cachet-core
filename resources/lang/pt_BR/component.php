@@ -10,6 +10,8 @@ return [
             'group' => 'Grupo',
             'enabled' => 'Ativo',
             'created_at' => 'Criado em',
+            'checked' => 'Monitorado',
+            'checked_at' => 'Verificado em',
             'updated_at' => 'Atualizado em',
             'deleted_at' => 'Excluído em',
         ],
@@ -22,7 +24,12 @@ return [
             'tags' => 'Tags',
         ],
     ],
+    'attach' => [
+        'heading' => 'Vincular componentes',
+        'placeholder' => 'Selecione os componentes',
+    ],
     'last_updated' => 'Última atualização :timestamp',
+    'description_label' => 'Sobre :component',
     'view_details' => 'Ver Detalhes',
     'form' => [
         'name_label' => 'Nome',
@@ -44,9 +51,29 @@ return [
         'under_maintenance' => 'Em manutenção',
         'unknown' => 'Desconhecido',
     ],
+    'status_source' => [
+        'manual' => 'Manual',
+        'monitor' => 'Monitoramento',
+        'import' => 'Importação',
+        'system' => 'Sistema',
+    ],
     'overview' => [
         'operational_components_label' => 'Componentes Operacionais',
         'operational_components_description' => 'Componentes que estão totalmente operacionais.',
+    ],
+    'checks' => [
+        'title' => 'Verificações recentes',
+        'empty_state' => [
+            'heading' => 'Nenhuma verificação ainda',
+            'description' => 'As verificações aparecerão aqui assim que o componente for monitorado.',
+        ],
+        'headers' => [
+            'status' => 'Status',
+            'successful' => 'Sucesso',
+            'response_code' => 'Código de resposta',
+            'response_time' => 'Tempo de resposta',
+            'checked_at' => 'Verificado em',
+        ],
     ],
     'explorer' => [
         'summary_label' => 'Componentes por status',

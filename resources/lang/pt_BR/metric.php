@@ -43,6 +43,8 @@ return [
     ],
     'sum_label' => 'Soma',
     'average_label' => 'Média',
+    'description_label' => 'Sobre :metric',
+    'chart_label' => 'Gráfico de :metric',
     'view_labels' => [
         'last_hour' => 'Última Hora',
         'today' => 'Hoje',

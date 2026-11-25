@@ -28,5 +28,6 @@ return [
         'collapsed_label' => 'Recolhido',
         'order_column_label' => 'Ordem do Grupo de Componentes',
         'order_direction' => 'Direção da Ordenação',
+        'meta_label' => 'Metadados',
     ],
 ];
