@@ -21,7 +21,7 @@ use function Pest\Livewire\livewire;
 beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('cachet'));
 
-    actingAs(User::factory()->create(['is_admin' => true]));
+    actingAs(User::factory()->administrator()->create());
 });
 
 it('registers app authentication on the panel', function () {

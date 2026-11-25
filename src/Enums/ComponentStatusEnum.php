@@ -79,6 +79,21 @@ enum ComponentStatusEnum: int implements HasColor, HasIcon, HasLabel
         };
     }
 
+    /**
+     * Get the background classes of the status page grid tiles and uptime bars.
+     */
+    public function getBackgroundColorClasses(): string
+    {
+        return match ($this) {
+            self::operational => 'bg-green-500',
+            self::performance_issues => 'bg-purple-500',
+            self::partial_outage => 'bg-amber-500',
+            self::major_outage => 'bg-red-600',
+            self::under_maintenance => 'bg-orange-500',
+            default => 'bg-zinc-300 dark:bg-zinc-700',
+        };
+    }
+
     public function getBadgeColor(): string
     {
         return match ($this) {

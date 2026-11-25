@@ -9,7 +9,6 @@ return [
             'name' => 'Pangalan',
             'email' => 'Email Address',
             'email_verified_at' => 'Email na Kumpirmado noong',
-            'is_admin' => 'Admin ba?',
         ],
         'actions' => [
             'verify_email' => 'Kumpirmahin ang Email',
@@ -22,6 +21,5 @@ return [
         'password_confirmation_label' => 'Kumpirmahin ang Password',
         'preferred_locale' => 'Piniling Wika',
         'preferred_locale_system_default' => 'Default ng Sistema',
-        'is_admin_label' => 'Admin',
     ],
 ];

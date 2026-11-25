@@ -6,6 +6,7 @@ use Cachet\Actions\Integrations\ImportOhDearFeed;
 use Cachet\Cachet;
 use Cachet\Filament\Resources\ComponentGroups\ComponentGroupResource;
 use Cachet\Models\Component;
+use Cachet\Permissions;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -34,6 +35,11 @@ class OhDear extends Page
     public ?int $component_group_id = null;
 
     public bool $import_incidents = false;
+
+    public static function canAccess(): bool
+    {
+        return Permissions::allows(Permissions::SETTINGS);
+    }
 
     public static function getNavigationGroup(): ?string
     {

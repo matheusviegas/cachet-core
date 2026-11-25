@@ -7,19 +7,22 @@ use Cachet\Cachet;
 use Cachet\Data\Requests\ScheduleUpdate\CreateScheduleUpdateRequestData;
 use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\ScheduleStatusEnum;
-use Cachet\Filament\Components\ComponentOptions;
+use Cachet\Filament\Components\ComponentSelect;
 use Cachet\Filament\Resources\Schedules\Pages\CreateSchedule;
 use Cachet\Filament\Resources\Schedules\Pages\EditSchedule;
 use Cachet\Filament\Resources\Schedules\Pages\ListSchedules;
+use Cachet\Filament\Resources\Schedules\Pages\ViewSchedule;
 use Cachet\Filament\Resources\Schedules\RelationManagers\ComponentsRelationManager;
 use Cachet\Filament\Resources\Updates\RelationManagers\UpdatesRelationManager;
 use Cachet\Models\Schedule;
+use Cachet\Permissions;
 use Cachet\QueryBuilders\ScheduleBuilder;
 use Cachet\Settings\MailSettings;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\MarkdownEditor;
@@ -34,8 +37,10 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class ScheduleResource extends Resource
 {
@@ -79,11 +84,9 @@ class ScheduleResource extends Resource
                         ->defaultItems(0)
                         ->addActionLabel(__('cachet::schedule.form.add_component.action_label'))
                         ->schema([
-                            Select::make('component_id')
+                            ComponentSelect::make('component_id')
                                 ->label(__('cachet::schedule.form.add_component.component_label'))
-                                ->preload()
                                 ->required()
-                                ->options(fn (): array => ComponentOptions::forSelect())
                                 ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
                             ToggleButtons::make('component_status')
                                 ->label(__('cachet::schedule.form.add_component.status_label'))
@@ -164,6 +167,11 @@ class ScheduleResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('components')
+                    ->label(trans_choice('cachet::component.resource_label', 2))
+                    ->relationship('components', 'name')
+                    ->searchable()
+                    ->multiple(),
                 Filter::make('unpublished')
                     ->label(__('cachet::schedule.list.filters.scheduled'))
                     ->query(fn (ScheduleBuilder $query): ScheduleBuilder => $query->unpublished()),
@@ -171,6 +179,7 @@ class ScheduleResource extends Resource
             ->recordActions([
                 static::recordUpdateAction(),
                 Action::make('complete')
+                    ->authorize('update')
                     ->disabled(fn (Schedule $record): bool => $record->status === ScheduleStatusEnum::complete)
                     ->label(__('cachet::schedule.list.actions.complete'))
                     ->schema([
@@ -178,7 +187,14 @@ class ScheduleResource extends Resource
                             ->required(),
                     ])
                     ->color('success')
-                    ->action(fn (Schedule $record, array $data) => $record->update(['completed_at' => $data['completed_at']])),
+                    ->action(function (Action $action, Schedule $record, array $data): void {
+                        $record->update(['completed_at' => $data['completed_at']]);
+
+                        $action->success();
+                    })
+                    ->successNotificationTitle(fn (Schedule $record): string => __('cachet::schedule.list.actions.complete_success', ['name' => $record->name])),
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -196,6 +212,7 @@ class ScheduleResource extends Resource
     public static function recordUpdateAction(): Action
     {
         return Action::make('add-update')
+            ->authorize(fn (): bool => Permissions::allows('schedule-updates.manage'))
             ->disabled(fn (Schedule $record) => $record->status === ScheduleStatusEnum::complete)
             ->label(__('cachet::schedule.list.actions.record_update'))
             ->color('info')
@@ -224,6 +241,7 @@ class ScheduleResource extends Resource
             'index' => ListSchedules::route('/'),
             'create' => CreateSchedule::route('/create'),
             'edit' => EditSchedule::route('/{record}/edit'),
+            'view' => ViewSchedule::route('/{record}'),
         ];
     }
 

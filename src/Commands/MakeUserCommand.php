@@ -3,6 +3,8 @@
 namespace Cachet\Commands;
 
 use Cachet\Cachet;
+use Cachet\Enums\DefaultGroupEnum;
+use Cachet\Models\Group;
 use Illuminate\Console\Command;
 
 use function Laravel\Prompts\confirm;
@@ -127,12 +129,16 @@ class MakeUserCommand extends Command
     {
         $userModel = Cachet::userModel();
 
-        $userModel::create([
+        $user = $userModel::create([
             'name' => $this->data['name'],
             'email' => $this->email,
             'password' => bcrypt($this->password),
-            'is_admin' => $this->isAdmin,
         ]);
+
+        // Admins join the Administrators group; everyone else starts read only.
+        Group::findDefault($this->isAdmin ? DefaultGroupEnum::administrators : DefaultGroupEnum::read_only)
+            ?->users()
+            ->attach($user);
 
         $this->components->info('User created successfully.');
     }

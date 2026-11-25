@@ -17,6 +17,7 @@ return [
         ],
         'actions' => [
             'verify_label' => 'Verify',
+            'verify_success' => ':email has been verified.',
             'resend_verification_label' => 'Resend verification',
         ],
     ],

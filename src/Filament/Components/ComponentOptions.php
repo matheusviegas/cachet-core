@@ -4,21 +4,73 @@ namespace Cachet\Filament\Components;
 
 use Cachet\Models\Component;
 use Cachet\Models\ComponentGroup;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class ComponentOptions
 {
     /**
-     * Get components grouped by their component group, for Filament Select dropdowns.
+     * The most components a single search returns.
+     */
+    public const SEARCH_LIMIT = 50;
+
+    /**
+     * Search components by their name or group name, grouped by component group.
      *
-     * Pass the parent record to exclude components already attached to it through
-     * the `components` BelongsToMany relationship.
+     * Results are capped so a select never ships every component to the browser.
      *
+     * Example: search('128') => ['Area 3' => [128 => 'Robot 128']]
+     *
+     * @param  array<int, int|string>  $excludeIds
      * @return array<string, array<int, string>>
      */
-    public static function forSelect(?Model $excludeAttachedTo = null): array
+    public static function search(string $search, array $excludeIds = [], int $limit = self::SEARCH_LIMIT): array
     {
-        $query = Component::query()
+        $search = trim($search);
+
+        $components = self::orderedQuery()
+            ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
+                ->whereLike('components.name', "%{$search}%")
+                ->orWhereLike('component_groups.name', "%{$search}%")))
+            ->when($excludeIds !== [], fn (Builder $query) => $query->whereNotIn('components.id', $excludeIds))
+            ->limit($limit)
+            ->get();
+
+        return self::grouped($components);
+    }
+
+    /**
+     * Get the labels of the given components, skipping excluded and missing ones.
+     *
+     * Filament validates the submitted value against these labels, so an
+     * excluded or unknown id fails validation.
+     *
+     * @param  array<int, int|string>  $ids
+     * @param  array<int, int|string>  $excludeIds
+     * @return array<int, string>
+     */
+    public static function labels(array $ids, array $excludeIds = []): array
+    {
+        $ids = array_values(array_diff(array_filter($ids, 'is_numeric'), $excludeIds));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        return Component::query()
+            ->whereKey($ids)
+            ->pluck('name', 'id')
+            ->all();
+    }
+
+    /**
+     * Components ordered by group, then by their position within it.
+     *
+     * @return Builder<Component>
+     */
+    private static function orderedQuery(): Builder
+    {
+        return Component::query()
             ->with('group')
             ->leftJoin('component_groups', 'components.component_group_id', '=', 'component_groups.id')
             ->orderByRaw('component_groups.id is null')
@@ -27,13 +79,15 @@ class ComponentOptions
             ->orderBy('components.order')
             ->orderBy('components.name')
             ->select('components.*');
+    }
 
-        if ($excludeAttachedTo && method_exists($excludeAttachedTo, 'components')) {
-            $query->whereNotIn('components.id', $excludeAttachedTo->components()->pluck('components.id'));
-        }
-
-        return $query
-            ->get()
+    /**
+     * @param  Collection<int, Component>  $components
+     * @return array<string, array<int, string>>
+     */
+    private static function grouped(Collection $components): array
+    {
+        return $components
             ->groupBy(function (Component $component): string {
                 $group = $component->group;
 

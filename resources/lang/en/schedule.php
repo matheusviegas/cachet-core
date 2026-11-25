@@ -24,6 +24,7 @@ return [
         'actions' => [
             'record_update' => 'Record update',
             'complete' => 'Complete maintenance',
+            'complete_success' => ':name has been marked as complete.',
         ],
     ],
     'form' => [
@@ -58,6 +59,12 @@ return [
         'upcoming' => 'Upcoming',
         'in_progress' => 'In progress',
         'complete' => 'Complete',
+    ],
+    'window' => [
+        'duration' => 'Duration',
+        'starts_at' => 'Start',
+        'expected_end' => 'Expected end',
+        'ended_at' => 'Ended',
     ],
     'planned_maintenance_header' => 'Planned maintenance',
 ];

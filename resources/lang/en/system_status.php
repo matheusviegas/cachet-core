@@ -13,4 +13,7 @@ return [
     'partial_outage' => 'Some systems are experiencing issues.',
     'major_outage' => 'Some systems are experiencing major issues.',
     'under_maintenance' => 'Some systems are under maintenance.',
+    'history_title' => 'Uptime over the last :days days',
+    'history_empty' => 'No uptime history has been recorded yet. It is recorded every fifteen minutes by the scheduler.',
+    'all_components' => 'All components',
 ];

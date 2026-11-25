@@ -6,10 +6,12 @@ use Cachet\Enums\IncidentTemplateEngineEnum;
 use Cachet\Filament\Resources\IncidentTemplates\Pages\CreateIncidentTemplate;
 use Cachet\Filament\Resources\IncidentTemplates\Pages\EditIncidentTemplate;
 use Cachet\Filament\Resources\IncidentTemplates\Pages\ListIncidentTemplates;
+use Cachet\Filament\Resources\IncidentTemplates\Pages\ViewIncidentTemplate;
 use Cachet\Models\IncidentTemplate;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -20,6 +22,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -101,6 +104,8 @@ class IncidentTemplateResource extends Resource
                 //
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -125,6 +130,7 @@ class IncidentTemplateResource extends Resource
             'index' => ListIncidentTemplates::route('/'),
             'create' => CreateIncidentTemplate::route('/create'),
             'edit' => EditIncidentTemplate::route('/{record}/edit'),
+            'view' => ViewIncidentTemplate::route('/{record}'),
         ];
     }
 

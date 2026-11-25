@@ -19,7 +19,8 @@ class EditSchedule extends EditRecord
         return [
             ScheduleResource::recordUpdateAction()
                 ->label(__('cachet::schedule.add_update.new_update_label'))
-                ->icon(Heroicon::OutlinedPlus),
+                ->icon(Heroicon::OutlinedPlus)
+                ->after(fn () => $this->refreshCompletion()),
             DeleteAction::make(),
         ];
     }
@@ -39,5 +40,14 @@ class EditSchedule extends EditRecord
     protected function afterSave(): void
     {
         $this->persistMeta();
+    }
+
+    /**
+     * Reload the completion time an update may set, so saving the form does not clear it.
+     */
+    private function refreshCompletion(): void
+    {
+        $this->getRecord()->refresh();
+        $this->refreshFormData(['completed_at']);
     }
 }

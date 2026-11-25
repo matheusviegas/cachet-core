@@ -52,6 +52,7 @@ use Illuminate\Support\Str;
  * @method static Builder<static>|static checked()
  * @method static Builder<static>|static disabled()
  * @method static Builder<static>|static enabled()
+ * @method static Builder<static>|static onStatusPage(bool $authenticated = false)
  * @method static Builder<static>|static outage()
  * @method static Builder<static>|static status(ComponentStatusEnum $status)
  * @method static ComponentFactory factory($count = null, $state = [])
@@ -188,6 +189,16 @@ class Component extends Model implements Metable
     }
 
     /**
+     * Get the recorded daily uptime of the component.
+     *
+     * @return HasMany<ComponentUptimeDay, $this>
+     */
+    public function uptimeDays(): HasMany
+    {
+        return $this->hasMany(ComponentUptimeDay::class);
+    }
+
+    /**
      * Get the recorded changes to the component's baseline status.
      *
      * @return HasMany<ComponentStatusChange, $this>
@@ -227,6 +238,19 @@ class Component extends Model implements Metable
     public function scopeEnabled(Builder $query): void
     {
         $query->where('enabled', true);
+    }
+
+    /**
+     * Scope to the components a status page viewer may see.
+     *
+     * Enabled components that are ungrouped, or whose group is visible to the viewer.
+     */
+    public function scopeOnStatusPage(Builder $query, bool $authenticated = false): void
+    {
+        $query->where('components.enabled', true)
+            ->where(fn (Builder $query) => $query
+                ->whereNull('components.component_group_id')
+                ->orWhereIn('components.component_group_id', ComponentGroup::query()->visible($authenticated)->select('id')));
     }
 
     /**

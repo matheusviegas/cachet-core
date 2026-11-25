@@ -42,6 +42,16 @@ it('falls back to the request preferred language when the user has no preferred 
     expect(app()->getLocale())->toBe('de');
 });
 
+it('falls back to the request preferred language for users created without a locale', function () {
+    $user = User::factory()->create();
+    $request = Request::create('/', 'GET', server: ['HTTP_ACCEPT_LANGUAGE' => 'de-DE,de;q=0.9,en;q=0.8']);
+    $request->setUserResolver(fn () => $user->fresh());
+
+    (new SetAppLocale)->handle($request, fn () => null);
+
+    expect(app()->getLocale())->toBe('de');
+});
+
 it('passes the request through to the next middleware', function () {
     $request = Request::create('/');
     $called = false;

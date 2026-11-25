@@ -1,7 +1,9 @@
 <?php
 
+use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Enums\ResourceVisibilityEnum;
+use Cachet\Models\Component;
 use Cachet\Models\Incident;
 use Cachet\Models\Update;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -175,7 +177,7 @@ it('cannot create an incident update without the token ability', function () {
 });
 
 it('can create an incident update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incident = Incident::factory()->create();
 
@@ -189,6 +191,86 @@ it('can create an incident update', function () {
         'status' => IncidentStatusEnum::identified->value,
         'message' => 'This is a test message.',
     ]);
+});
+
+it('can create an incident update that moves its component statuses', function () {
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
+
+    $incident = Incident::factory()->create();
+    $component = Component::factory()->create();
+    $incident->components()->attach($component->id, [
+        'component_status' => ComponentStatusEnum::major_outage,
+    ]);
+
+    $response = postJson("/status/api/incidents/{$incident->id}/updates", [
+        'status' => IncidentStatusEnum::identified->value,
+        'message' => 'The API is recovering.',
+        'components' => [
+            ['id' => $component->id, 'status' => ComponentStatusEnum::performance_issues->value],
+        ],
+    ]);
+
+    $response->assertCreated();
+
+    expect($incident->components()->first()->pivot->component_status)
+        ->toEqual(ComponentStatusEnum::performance_issues);
+});
+
+it('rejects an incident update with an unknown component', function () {
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
+
+    $incident = Incident::factory()->create();
+
+    $response = postJson("/status/api/incidents/{$incident->id}/updates", [
+        'status' => IncidentStatusEnum::identified->value,
+        'message' => 'The API is recovering.',
+        'components' => [
+            ['id' => 999999, 'status' => ComponentStatusEnum::operational->value],
+        ],
+    ]);
+
+    $response->assertUnprocessable();
+});
+
+it('rejects an incident update that lists a component twice', function () {
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
+
+    $incident = Incident::factory()->create();
+    $component = Component::factory()->create();
+
+    $response = postJson("/status/api/incidents/{$incident->id}/updates", [
+        'status' => IncidentStatusEnum::identified->value,
+        'message' => 'The API is recovering.',
+        'components' => [
+            ['id' => $component->id, 'status' => ComponentStatusEnum::operational->value],
+            ['id' => $component->id, 'status' => ComponentStatusEnum::major_outage->value],
+        ],
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['components.0.id', 'components.1.id']);
+
+    expect($incident->updates()->count())->toBe(0);
+});
+
+it('rejects an incident update with an unknown component status', function () {
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
+
+    $incident = Incident::factory()->create();
+    $component = Component::factory()->create();
+
+    $response = postJson("/status/api/incidents/{$incident->id}/updates", [
+        'status' => IncidentStatusEnum::identified->value,
+        'message' => 'The API is recovering.',
+        'components' => [
+            ['id' => $component->id, 'status' => 999],
+        ],
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['components.0.status']);
+
+    expect($incident->components()->count())->toBe(0);
 });
 
 it('cannot update an incident update if not authenticated', function () {
@@ -214,7 +296,7 @@ it('cannot update an incident update without the token ability', function () {
 });
 
 it('can update an incident update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incidentUpdate = Update::factory()->forIncident()->create();
 
@@ -251,7 +333,7 @@ it('cannot delete an incident update without the token ability', function () {
 });
 
 it('can delete an incident update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.delete']);
 
     $incidentUpdate = Update::factory()->forIncident()->create();
 
@@ -264,7 +346,7 @@ it('can delete an incident update', function () {
 });
 
 it('cannot delete an incident update from another incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.delete']);
 
     $incidentUpdate = Update::factory()->forUpdateable()->create();
 

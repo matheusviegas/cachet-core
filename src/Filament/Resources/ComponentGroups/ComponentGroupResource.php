@@ -9,11 +9,13 @@ use Cachet\Enums\ResourceVisibilityEnum;
 use Cachet\Filament\Resources\ComponentGroups\Pages\CreateComponentGroup;
 use Cachet\Filament\Resources\ComponentGroups\Pages\EditComponentGroup;
 use Cachet\Filament\Resources\ComponentGroups\Pages\ListComponentGroups;
+use Cachet\Filament\Resources\ComponentGroups\Pages\ViewComponentGroup;
 use Cachet\Filament\Resources\Components\RelationManagers\ComponentsRelationManager;
 use Cachet\Models\ComponentGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -26,6 +28,7 @@ use Filament\Support\Enums\GridDirection;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ComponentGroupResource extends Resource
 {
@@ -133,6 +136,8 @@ class ComponentGroupResource extends Resource
                 //
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -159,6 +164,7 @@ class ComponentGroupResource extends Resource
             'index' => ListComponentGroups::route('/'),
             'create' => CreateComponentGroup::route('/create'),
             'edit' => EditComponentGroup::route('/{record}/edit'),
+            'view' => ViewComponentGroup::route('/{record}'),
         ];
     }
 

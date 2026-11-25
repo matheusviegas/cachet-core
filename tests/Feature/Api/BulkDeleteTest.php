@@ -12,7 +12,7 @@ use Workbench\App\User;
 use function Pest\Laravel\deleteJson;
 
 it('can bulk delete every supported resource', function (string $resource, string $ability, string $modelClass, string $table, bool $softDeletes) {
-    Sanctum::actingAs(User::factory()->create(), [$ability]);
+    Sanctum::actingAs(User::factory()->administrator()->create(), [$ability]);
 
     $models = $modelClass::factory(2)->create();
 
@@ -37,7 +37,7 @@ it('can bulk delete every supported resource', function (string $resource, strin
 ]);
 
 it('rejects collection deletion without valid IDs', function (string $query) {
-    Sanctum::actingAs(User::factory()->create(), ['components.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.delete']);
 
     $response = deleteJson('/status/api/components'.$query);
 
@@ -51,7 +51,7 @@ it('rejects collection deletion without valid IDs', function (string $query) {
 ]);
 
 it('does not delete any resources when one requested ID does not exist', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.delete']);
 
     $component = Component::factory()->create();
 
@@ -66,14 +66,14 @@ it('requires authentication and the matching ability for collection deletion', f
 
     deleteJson('/status/api/components?ids='.$component->id)->assertUnauthorized();
 
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     deleteJson('/status/api/components?ids='.$component->id)->assertForbidden();
     $this->assertDatabaseHas('components', ['id' => $component->id, 'deleted_at' => null]);
 });
 
 it('applies component group cleanup when bulk deleting component groups', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.delete']);
 
     $componentGroups = ComponentGroup::factory()->hasComponents(1)->count(2)->create();
 
@@ -85,7 +85,7 @@ it('applies component group cleanup when bulk deleting component groups', functi
 });
 
 it('deletes incident updates when bulk deleting incidents', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.delete']);
 
     $incidents = Incident::factory()->hasUpdates(1)->count(2)->create();
 
@@ -96,7 +96,7 @@ it('deletes incident updates when bulk deleting incidents', function () {
 });
 
 it('deletes metric points when bulk deleting metrics', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.delete']);
 
     $metrics = Metric::factory()->hasMetricPoints(1)->count(2)->create();
 

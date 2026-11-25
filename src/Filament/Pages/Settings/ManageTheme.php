@@ -4,16 +4,20 @@ namespace Cachet\Filament\Pages\Settings;
 
 use Cachet\Cachet;
 use Cachet\Data\Cachet\ThemeData;
+use Cachet\Enums\ThemeModeEnum;
 use Cachet\Settings\ThemeSettings;
+use Cachet\View\Favicon;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
+use Illuminate\Support\Facades\Storage;
 
 class ManageTheme extends SettingsPage
 {
@@ -21,7 +25,8 @@ class ManageTheme extends SettingsPage
 
     public static function canAccess(): bool
     {
-        return Cachet::canAccessDashboardFeature('themes');
+        return parent::canAccess()
+            && Cachet::canAccessDashboardFeature('themes');
     }
 
     public static function getNavigationGroup(): ?string
@@ -42,7 +47,7 @@ class ManageTheme extends SettingsPage
                     FileUpload::make('app_banner')
                         ->acceptedFileTypes((array) config('cachet.uploads.image_mime_types'))
                         ->maxSize((int) config('cachet.uploads.max_size'))
-                        ->preventFilePathTampering()
+                        ->preventFilePathTampering(allowFilePathUsing: fn (string $file): bool => Storage::disk((string) config('cachet.uploads.disk'))->exists($file))
                         ->imageEditor()
                         ->label(__('cachet::settings.manage_theme.app_banner_label'))
                         ->hiddenLabel()
@@ -50,6 +55,31 @@ class ManageTheme extends SettingsPage
                         ->disk((string) config('cachet.uploads.disk'))
                         ->columnSpanFull(),
                 ]),
+
+                Section::make(__('cachet::settings.manage_theme.favicon_label'))->columns(2)->schema([
+                    FileUpload::make('favicon')
+                        ->acceptedFileTypes(Favicon::UPLOAD_MIME_TYPES)
+                        ->maxSize((int) config('cachet.uploads.max_size'))
+                        ->preventFilePathTampering(allowFilePathUsing: fn (string $file): bool => Storage::disk((string) config('cachet.uploads.disk'))->exists($file))
+                        ->label(__('cachet::settings.manage_theme.favicon_label'))
+                        ->hiddenLabel()
+                        ->helperText(__('cachet::settings.manage_theme.favicon_helper'))
+                        ->disk((string) config('cachet.uploads.disk'))
+                        ->directory('favicons')
+                        ->columnSpanFull(),
+                ]),
+
+                Section::make()
+                    ->heading(__('cachet::settings.manage_theme.theme_mode.heading'))
+                    ->description(__('cachet::settings.manage_theme.theme_mode.description'))
+                    ->schema([
+                        ToggleButtons::make('theme_mode')
+                            ->label(__('cachet::settings.manage_theme.theme_mode.label'))
+                            ->helperText(__('cachet::settings.manage_theme.theme_mode.helper'))
+                            ->options(ThemeModeEnum::class)
+                            ->inline()
+                            ->required(),
+                    ]),
 
                 Section::make()->columns(2)
                     ->heading(__('cachet::settings.manage_theme.status_page_accent.heading'))

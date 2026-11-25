@@ -27,7 +27,7 @@ use function PHPUnit\Framework\assertSame;
 it('renders the dashboard', function () {
     Http::fake();
 
-    actingAs(User::factory()->create(['is_admin' => true]))
+    actingAs(User::factory()->administrator()->create())
         ->get(Dashboard::getUrl())
         ->assertOk();
 });
@@ -93,6 +93,7 @@ it('plots all 30 days including days without activity', function () {
 
 it('links overview stats to their relevant resources', function () {
     Filament::setCurrentPanel(Filament::getPanel('cachet'));
+    actingAs(User::factory()->administrator()->create());
 
     $overview = new class extends Overview
     {

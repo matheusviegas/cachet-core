@@ -5,19 +5,22 @@ namespace Tests\Feature\Filament\Resources;
 use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Enums\ResourceVisibilityEnum;
-use Cachet\Filament\Components\ComponentOptions;
+use Cachet\Filament\Resources\Components\RelationManagers\ComponentsRelationManager;
 use Cachet\Filament\Resources\Incidents\IncidentResource;
 use Cachet\Filament\Resources\Incidents\Pages\CreateIncident;
 use Cachet\Filament\Resources\Incidents\Pages\EditIncident;
 use Cachet\Filament\Resources\Incidents\Pages\ListIncidents;
 use Cachet\Filament\Resources\Updates\RelationManagers\UpdatesRelationManager;
 use Cachet\Models\Component;
-use Cachet\Models\ComponentGroup;
 use Cachet\Models\Incident;
 use Cachet\Models\Subscriber;
 use Cachet\Notifications\NewIncidentNotification;
 use Cachet\Settings\MailSettings;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Support\Facades\Notification;
 use Workbench\App\User;
 
@@ -27,7 +30,7 @@ use function Pest\Livewire\livewire;
 beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('cachet'));
 
-    actingAs(User::factory()->create(['is_admin' => true]));
+    actingAs(User::factory()->administrator()->create());
 });
 
 it('counts every open incident in the navigation badge', function () {
@@ -90,7 +93,7 @@ it('shows the notify subscribers toggle when subscriptions are allowed', functio
 });
 
 it('defaults the incident update user to the incident reporter', function () {
-    $reporter = User::factory()->create(['is_admin' => true]);
+    $reporter = User::factory()->administrator()->create();
     $incident = Incident::factory()->create(['user_id' => $reporter->id]);
 
     livewire(EditIncident::class, ['record' => $incident->getKey()])
@@ -119,23 +122,6 @@ it('notifies subscribers when creating an incident from the dashboard', function
         ->assertHasNoFormErrors();
 
     Notification::assertSentTo($subscriber, NewIncidentNotification::class);
-});
-
-it('groups component selections by component group when creating an incident', function () {
-    $firstGroup = ComponentGroup::factory()->create(['name' => 'First Group', 'order' => 1]);
-    $secondGroup = ComponentGroup::factory()->create(['name' => 'Second Group', 'order' => 2]);
-
-    Component::factory()->for($firstGroup, 'group')->create(['name' => 'Webservice']);
-    Component::factory()->for($secondGroup, 'group')->create(['name' => 'Webservice']);
-    Component::factory()->create(['name' => 'Ungrouped Service']);
-
-    livewire(CreateIncident::class)
-        ->fillForm([
-            'incidentComponents' => [['component_id' => null]],
-        ])
-        ->assertSeeInOrder(['First Group', 'Second Group', 'Ungrouped components'])
-        ->assertSee('Webservice')
-        ->assertSee('Ungrouped Service');
 });
 
 it('sorts incidents by their canonical status column', function () {
@@ -185,13 +171,175 @@ it('shows the update message as the primary update information', function () {
         ->assertTableColumnStateSet('message', $update->message, $update);
 });
 
-it('excludes already attached components from the attach action options', function () {
+it('translates the update and component relation managers', function () {
+    app()->setLocale('de');
     $incident = Incident::factory()->create();
-    $attached = Component::factory()->create(['name' => 'Already Attached']);
 
-    $incident->components()->attach($attached->id, ['component_status' => ComponentStatusEnum::operational->value]);
+    livewire(UpdatesRelationManager::class, [
+        'ownerRecord' => $incident,
+        'pageClass' => EditIncident::class,
+    ])
+        ->assertTableColumnExists('message', fn (TextColumn $column): bool => $column->getLabel() === 'Nachricht')
+        ->assertTableColumnExists('created_at', fn (TextColumn $column): bool => $column->getLabel() === 'Erstellt am');
 
-    $options = ComponentOptions::forSelect($incident);
+    expect(ComponentsRelationManager::getTitle($incident, EditIncident::class))->toBe('Komponenten');
+});
 
-    expect(collect($options)->flatten()->all())->not->toContain('Already Attached');
+it('translates the incident user field', function () {
+    app()->setLocale('de');
+
+    livewire(CreateIncident::class)
+        ->assertFormFieldExists('user_id', fn (Select $field): bool => $field->getLabel() === 'Benutzer');
+});
+
+it('translates the update form', function () {
+    app()->setLocale('de');
+    $incident = Incident::factory()->create();
+    $update = $incident->updates()->create([
+        'message' => 'Cause identified.',
+        'status' => IncidentStatusEnum::identified,
+        'user_id' => auth()->id(),
+    ]);
+
+    livewire(UpdatesRelationManager::class, [
+        'ownerRecord' => $incident,
+        'pageClass' => EditIncident::class,
+    ])
+        ->mountAction(TestAction::make('edit')->table($update))
+        ->assertFormFieldExists('message', fn (MarkdownEditor $field): bool => $field->getLabel() === 'Nachricht')
+        ->assertFormFieldExists('user_id', fn (Select $field): bool => $field->getLabel() === 'Benutzer'
+            && $field->getHint() === 'Benutzer, welcher den Vorfall gemeldet hat.');
+});
+
+it('syncs the incident status when an update is deleted from the updates tab', function () {
+    $incident = Incident::factory()->create(['status' => IncidentStatusEnum::fixed]);
+    $incident->updates()->create([
+        'message' => 'Cause identified.',
+        'status' => IncidentStatusEnum::identified,
+        'user_id' => auth()->id(),
+        'created_at' => now()->subHour(),
+    ]);
+    $fixed = $incident->updates()->create([
+        'message' => 'All fixed.',
+        'status' => IncidentStatusEnum::fixed,
+        'user_id' => auth()->id(),
+    ]);
+
+    livewire(UpdatesRelationManager::class, [
+        'ownerRecord' => $incident,
+        'pageClass' => EditIncident::class,
+    ])
+        ->callAction(TestAction::make('delete')->table($fixed));
+
+    expect($incident->fresh()->status)->toBe(IncidentStatusEnum::identified);
+});
+
+it('syncs the incident status when updates are bulk deleted from the updates tab', function () {
+    $incident = Incident::factory()->create(['status' => IncidentStatusEnum::fixed]);
+    $incident->updates()->create([
+        'message' => 'Cause identified.',
+        'status' => IncidentStatusEnum::identified,
+        'user_id' => auth()->id(),
+        'created_at' => now()->subHour(),
+    ]);
+    $fixed = $incident->updates()->create([
+        'message' => 'All fixed.',
+        'status' => IncidentStatusEnum::fixed,
+        'user_id' => auth()->id(),
+    ]);
+
+    livewire(UpdatesRelationManager::class, [
+        'ownerRecord' => $incident,
+        'pageClass' => EditIncident::class,
+    ])
+        ->selectTableRecords([$fixed])
+        ->callAction(TestAction::make('delete')->table()->bulk());
+
+    expect($incident->fresh()->status)->toBe(IncidentStatusEnum::identified);
+});
+
+it('syncs the incident status when an update status is edited from the updates tab', function () {
+    $incident = Incident::factory()->create(['status' => IncidentStatusEnum::identified]);
+    $update = $incident->updates()->create([
+        'message' => 'Cause identified.',
+        'status' => IncidentStatusEnum::identified,
+        'user_id' => auth()->id(),
+    ]);
+
+    livewire(UpdatesRelationManager::class, [
+        'ownerRecord' => $incident,
+        'pageClass' => EditIncident::class,
+    ])
+        ->callAction(TestAction::make('edit')->table($update), data: [
+            'status' => IncidentStatusEnum::fixed,
+        ]);
+
+    expect($incident->fresh()->status)->toBe(IncidentStatusEnum::fixed);
+});
+
+it('lists incidents without an occurred time by their created time', function () {
+    $older = Incident::factory()->create([
+        'status' => IncidentStatusEnum::investigating,
+        'occurred_at' => now()->subDays(2),
+    ]);
+    $newer = Incident::factory()->create([
+        'status' => IncidentStatusEnum::investigating,
+        'occurred_at' => null,
+    ]);
+
+    livewire(ListIncidents::class)
+        ->assertCanSeeTableRecords([$newer, $older], inOrder: true)
+        ->assertTableColumnStateSet('occurred_at', $newer->created_at, $newer);
+});
+
+it('preloads the impacted components into the record update action', function () {
+    $incident = Incident::factory()->create();
+    $component = Component::factory()->create(['name' => 'API']);
+    $incident->components()->attach($component->id, ['component_status' => ComponentStatusEnum::major_outage]);
+
+    livewire(EditIncident::class, ['record' => $incident->getKey()])
+        ->mountAction('add-update')
+        ->assertActionDataSet(function (array $data) use ($component): array {
+            // The closure's return value is only asserted when it is an array, so assert here.
+            $rows = collect($data['components'] ?? [])->values();
+            $status = $rows[0]['status'] ?? null;
+
+            expect($rows)->toHaveCount(1)
+                ->and($rows[0]['id'])->toBe($component->id)
+                ->and($status instanceof ComponentStatusEnum ? $status : ComponentStatusEnum::tryFrom((int) $status))
+                ->toBe(ComponentStatusEnum::major_outage);
+
+            return [];
+        });
+});
+
+it('updates the incident component statuses when recording an update', function () {
+    $incident = Incident::factory()->create(['status' => IncidentStatusEnum::investigating]);
+    $component = Component::factory()->create();
+    $incident->components()->attach($component->id, ['component_status' => ComponentStatusEnum::major_outage]);
+
+    livewire(EditIncident::class, ['record' => $incident->getKey()])
+        ->callAction('add-update', data: [
+            'message' => 'The API is recovering.',
+            'status' => IncidentStatusEnum::identified,
+            'components' => [
+                ['id' => $component->id, 'status' => ComponentStatusEnum::performance_issues->value],
+            ],
+        ])
+        ->assertHasNoActionErrors();
+
+    expect($incident->components()->first()->pivot->component_status)
+        ->toEqual(ComponentStatusEnum::performance_issues);
+});
+
+it('filters incidents by an affected component', function () {
+    $component = Component::factory()->create();
+    $affected = Incident::factory()->create();
+    $unaffected = Incident::factory()->create();
+    $affected->components()->attach($component->id, ['component_status' => ComponentStatusEnum::major_outage]);
+
+    livewire(ListIncidents::class)
+        ->filterTable('components', [$component->id])
+        ->assertCanSeeTableRecords([$affected])
+        ->assertCanNotSeeTableRecords([$unaffected]);
 });

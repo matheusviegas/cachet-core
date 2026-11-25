@@ -18,6 +18,11 @@ class OpenIncidents extends TableWidget
 
     protected static ?int $sort = 2;
 
+    public static function canView(): bool
+    {
+        return IncidentResource::canViewAny();
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -26,7 +31,7 @@ class OpenIncidents extends TableWidget
                     ->unresolved()
                     ->with('updates')
                     ->withCount('components')
-                    ->orderByDesc('occurred_at')
+                    ->orderByRaw('coalesce(occurred_at, created_at) desc')
             )
             ->heading(__('cachet::dashboard.open_incidents.heading'))
             ->poll($this->getPollingInterval())
@@ -40,15 +45,17 @@ class OpenIncidents extends TableWidget
                     ->badge(),
                 TextColumn::make('occurred_at')
                     ->label(__('cachet::dashboard.open_incidents.headers.occurred_at'))
+                    ->state(fn (Incident $record) => $record->timestamp)
                     ->since()
                     ->tooltip(fn (Incident $record): string => $record->timestamp->toDayDateTimeString()),
                 TextColumn::make('components_count')
                     ->label(__('cachet::dashboard.open_incidents.headers.components')),
             ])
-            ->recordUrl(fn (Incident $record): string => $record->filamentDashboardEditUrl())
+            ->recordUrl(fn (Incident $record): string => IncidentResource::getUrl(IncidentResource::canEdit($record) ? 'edit' : 'view', ['record' => $record]))
             ->headerActions([
                 Action::make('create')
                     ->label(__('cachet::dashboard.open_incidents.actions.create'))
+                    ->visible(fn (): bool => IncidentResource::canCreate())
                     ->url(IncidentResource::getUrl('create')),
             ])
             ->emptyStateHeading(__('cachet::dashboard.open_incidents.empty_state.heading'))

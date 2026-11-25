@@ -2,10 +2,21 @@
 
 namespace Cachet\Concerns;
 
+/**
+ * A user whose access comes from the permissions of their groups. Use the
+ * HasGroups trait to implement it.
+ */
 interface CachetUser
 {
     /**
-     * Determine if the user is an admin.
+     * @return list<string>
      */
-    public function isAdmin(): bool;
+    public function getPermissions(): array;
+
+    public function hasPermission(string $permission): bool;
+
+    /**
+     * @param  list<string>  $permissions
+     */
+    public function hasAllPermissions(array $permissions): bool;
 }

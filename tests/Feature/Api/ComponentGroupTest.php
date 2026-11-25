@@ -120,7 +120,7 @@ it('cannot create a component group when not authenticated', function () {
 });
 
 it('can create a component group with meta', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -143,7 +143,7 @@ it('cannot create a component group without the token ability', function () {
 });
 
 it('can create a component group without components', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -159,7 +159,7 @@ it('can create a component group without components', function () {
 });
 
 it('can create a component group with a collapsed state', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -174,7 +174,7 @@ it('can create a component group with a collapsed state', function () {
 });
 
 it('cannot create a component group with an invalid collapsed state', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -186,7 +186,7 @@ it('cannot create a component group with an invalid collapsed state', function (
 });
 
 it('can create a component group and attach existing components', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $components = Component::factory()->create();
 
@@ -230,7 +230,7 @@ it('cannot update a component group without the token ability', function () {
 });
 
 it('can update a component group', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $componentGroup = ComponentGroup::factory()->create();
 
@@ -248,7 +248,7 @@ it('can update a component group', function () {
 });
 
 it('can update a component group collapsed state', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $componentGroup = ComponentGroup::factory()->create([
         'collapsed' => ComponentGroupVisibilityEnum::expanded->value,
@@ -266,7 +266,7 @@ it('can update a component group collapsed state', function () {
 });
 
 it('cannot update a component group with an invalid collapsed state', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $componentGroup = ComponentGroup::factory()->create();
 
@@ -279,7 +279,7 @@ it('cannot update a component group with an invalid collapsed state', function (
 });
 
 it('can update a component group with components', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $components = Component::factory()->count(3)->create();
     $componentGroup = ComponentGroup::factory()->create();
@@ -320,7 +320,7 @@ it('cannot delete a component group without the token ability', function () {
 });
 
 it('can delete a component group', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.delete']);
 
     $componentGroup = ComponentGroup::factory()->create();
 
@@ -333,7 +333,7 @@ it('can delete a component group', function () {
 });
 
 it('updates components group id when a group is deleted', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.delete']);
 
     $componentGroup = ComponentGroup::factory()->hasComponents(2)->create();
 
@@ -382,7 +382,7 @@ it('exposes an ascending order direction in the resource', function () {
 });
 
 it('can create a component group with a manual order column', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -398,7 +398,7 @@ it('can create a component group with a manual order column', function () {
 });
 
 it('can create a component group with an order column and direction', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -415,7 +415,7 @@ it('can create a component group with an order column and direction', function (
 });
 
 it('requires an order direction when the order column is not manual', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -427,7 +427,7 @@ it('requires an order direction when the order column is not manual', function (
 });
 
 it('does not require an order direction when the order column is manual', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -438,7 +438,7 @@ it('does not require an order direction when the order column is manual', functi
 });
 
 it('cannot create a component group with an invalid order column', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -450,7 +450,7 @@ it('cannot create a component group with an invalid order column', function () {
 });
 
 it('cannot create a component group with an invalid order direction', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $response = postJson('/status/api/component-groups', [
         'name' => 'New Group',
@@ -463,7 +463,7 @@ it('cannot create a component group with an invalid order direction', function (
 });
 
 it('can update a component group order column and direction', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $componentGroup = ComponentGroup::factory()->create([
         'order_column' => ResourceOrderColumnEnum::Manual,
@@ -483,7 +483,7 @@ it('can update a component group order column and direction', function () {
 });
 
 it('can update an unrelated attribute without supplying an order direction', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $componentGroup = ComponentGroup::factory()->create([
         'order_column' => ResourceOrderColumnEnum::Manual,

@@ -8,10 +8,12 @@ use Cachet\Enums\ResourceVisibilityEnum;
 use Cachet\Filament\Resources\Metrics\Pages\CreateMetric;
 use Cachet\Filament\Resources\Metrics\Pages\EditMetric;
 use Cachet\Filament\Resources\Metrics\Pages\ListMetrics;
+use Cachet\Filament\Resources\Metrics\Pages\ViewMetric;
 use Cachet\Models\Metric;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -24,6 +26,7 @@ use Filament\Support\Enums\GridDirection;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class MetricResource extends Resource
 {
@@ -46,7 +49,7 @@ class MetricResource extends Resource
                         ->label(__('cachet::metric.form.suffix_label'))
                         ->required()
                         ->maxLength(255)
-                        ->placeholder('e.g. ms, %, etc.'),
+                        ->placeholder(__('cachet::metric.form.suffix_placeholder')),
                     MarkdownEditor::make('description')
                         ->label(__('cachet::metric.form.description_label'))
                         ->maxLength(255)
@@ -179,6 +182,8 @@ class MetricResource extends Resource
                 //
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -215,6 +220,7 @@ class MetricResource extends Resource
             'index' => ListMetrics::route('/'),
             'create' => CreateMetric::route('/create'),
             'edit' => EditMetric::route('/{record}/edit'),
+            'view' => ViewMetric::route('/{record}'),
         ];
     }
 }

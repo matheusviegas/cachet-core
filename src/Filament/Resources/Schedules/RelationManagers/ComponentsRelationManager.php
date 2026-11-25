@@ -3,12 +3,11 @@
 namespace Cachet\Filament\Resources\Schedules\RelationManagers;
 
 use Cachet\Enums\ComponentStatusEnum;
-use Cachet\Filament\Components\ComponentOptions;
+use Cachet\Filament\Components\ComponentSelect;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -19,6 +18,14 @@ use Illuminate\Database\Eloquent\Model;
 class ComponentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'components';
+
+    /**
+     * The affected components belong to the owner record, so access to it is enough.
+     */
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        return true;
+    }
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
@@ -51,11 +58,10 @@ class ComponentsRelationManager extends RelationManager
                     ->modalHeading(__('cachet::component.attach.heading'))
                     ->multiple()
                     ->form(fn (): array => [
-                        Select::make('recordId')
+                        ComponentSelect::make('recordId')
                             ->label(trans_choice('cachet::component.resource_label', 2))
                             ->placeholder(__('cachet::component.attach.placeholder'))
-                            ->options(fn (): array => ComponentOptions::forSelect($this->getOwnerRecord()))
-                            ->searchable()
+                            ->excludeAttachedTo(fn (): Model => $this->getOwnerRecord())
                             ->multiple()
                             ->required(),
                         ToggleButtons::make('component_status')

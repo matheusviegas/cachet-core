@@ -2,6 +2,8 @@
 
 namespace Cachet\Database\Factories;
 
+use Cachet\Enums\DefaultGroupEnum;
+use Cachet\Models\Group;
 use Cachet\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +14,8 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
+    protected $model = User::class;
+
     /**
      * The current password being used by the factory.
      */
@@ -31,6 +35,31 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Add the user to a default group.
+     */
+    public function inDefaultGroup(DefaultGroupEnum $key): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->groups()->attach(Group::findDefault($key)));
+    }
+
+    public function administrator(): static
+    {
+        return $this->inDefaultGroup(DefaultGroupEnum::administrators);
+    }
+
+    /**
+     * Add the user to a new group granting the given permissions.
+     *
+     * @param  list<string>  $permissions
+     */
+    public function withPermissions(array $permissions): static
+    {
+        return $this->afterCreating(fn (User $user) => $user->groups()->attach(
+            Group::factory()->withPermissions($permissions)->create(),
+        ));
     }
 
     /**

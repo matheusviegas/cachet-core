@@ -12,6 +12,7 @@ use Cachet\Concerns\Publishable;
 use Cachet\Database\Factories\ScheduleFactory;
 use Cachet\Enums\ScheduleStatusEnum;
 use Cachet\QueryBuilders\ScheduleBuilder;
+use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -59,6 +60,17 @@ class Schedule extends Model implements Metable
     use HasTags;
     use Publishable;
     use SoftDeletes;
+
+    /**
+     * Days, hours and minutes only, joined as a list: "2 dias, 1 hora e 20 minutos".
+     *
+     * @var array<string, mixed>
+     */
+    private const DURATION_FORMAT = [
+        'parts' => 3,
+        'join' => true,
+        'skip' => ['week', 'month', 'year'],
+    ];
 
     /**
      * Notify subscribers when the schedule transitions to complete, or when its window moves.
@@ -171,6 +183,28 @@ class Schedule extends Model implements Metable
     public function formattedMessage(): string
     {
         return Cachet::markdown($this->message);
+    }
+
+    /**
+     * Get the length of the maintenance window in the app's language, in days,
+     * hours and minutes, e.g. "2 dias, 1 hora e 20 minutos" or "30 minutos".
+     */
+    public function formattedDuration(): ?string
+    {
+        if ($this->scheduled_at === null || $this->completed_at === null) {
+            return null;
+        }
+
+        $minutes = (int) floor($this->scheduled_at->diffInMinutes($this->completed_at));
+
+        if ($minutes < 1) {
+            return null;
+        }
+
+        return CarbonInterval::minutes($minutes)
+            ->cascade()
+            ->locale(app()->getLocale())
+            ->forHumans(self::DURATION_FORMAT);
     }
 
     /**

@@ -12,10 +12,12 @@ return [
         'secret_label' => 'Segredo',
         'secret_helper' => 'O payload será assinado com este segredo. Consulte a *documentação de webhooks* para mais informações.',
         'description_label' => 'Descrição',
+        'events_to_send_label' => 'Eventos a enviar',
         'event_selection_label' => 'Enviar todos os eventos?',
         'events_label' => 'Eventos',
         'edit_secret_label' => 'Editar segredo',
         'update_secret_label' => 'Atualizar segredo',
+        'secret_updated' => 'Segredo atualizado.',
     ],
     'attempts' => [
         'heading' => 'Tentativas',

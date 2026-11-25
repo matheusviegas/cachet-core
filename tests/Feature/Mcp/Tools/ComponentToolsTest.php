@@ -60,7 +60,7 @@ it('does not expose write tools without the ability', function () {
 });
 
 it('creates a component', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     CachetServer::tool(CreateComponent::class, [
         'name' => 'API',
@@ -71,7 +71,7 @@ it('creates a component', function () {
 });
 
 it('validates component input', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     CachetServer::tool(CreateComponent::class, [
         'name' => str_repeat('a', 300),
@@ -79,7 +79,7 @@ it('validates component input', function () {
 });
 
 it('updates a component', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $component = Component::factory()->create(['status' => ComponentStatusEnum::operational]);
 
@@ -94,7 +94,7 @@ it('updates a component', function () {
 });
 
 it('deletes a component', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.delete']);
 
     $component = Component::factory()->create();
 
@@ -122,7 +122,7 @@ it('lists component groups with their components', function () {
 });
 
 it('creates a component group', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     CachetServer::tool(CreateComponentGroup::class, ['name' => 'Websites'])
         ->assertOk()
@@ -132,7 +132,7 @@ it('creates a component group', function () {
 });
 
 it('updates a component group', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.manage']);
 
     $group = ComponentGroup::factory()->create(['name' => 'Old Name']);
 
@@ -145,7 +145,7 @@ it('updates a component group', function () {
 });
 
 it('deletes a component group', function () {
-    Sanctum::actingAs(User::factory()->create(), ['component-groups.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['component-groups.delete']);
 
     $group = ComponentGroup::factory()->create();
 

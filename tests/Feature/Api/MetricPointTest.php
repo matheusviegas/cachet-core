@@ -93,7 +93,7 @@ it('cannot create a metric point without the token ability', function () {
 });
 
 it('can create a metric point', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metric-points.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metric-points.manage']);
 
     $metric = Metric::factory()->create();
 
@@ -110,7 +110,7 @@ it('can create a metric point', function () {
 });
 
 it('cannot create a metric point with an invalid timestamp', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metric-points.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metric-points.manage']);
 
     $metric = Metric::factory()->create();
 
@@ -124,7 +124,7 @@ it('cannot create a metric point with an invalid timestamp', function () {
 });
 
 it('can create a metric point with a unix timestamp', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metric-points.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metric-points.manage']);
 
     $metric = Metric::factory()->create();
 
@@ -155,7 +155,7 @@ it('cannot delete a metric point without the token ability', function () {
 });
 
 it('can delete a metric point', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metric-points.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metric-points.delete']);
 
     $metricPoint = MetricPoint::factory()->forMetric()->create();
 

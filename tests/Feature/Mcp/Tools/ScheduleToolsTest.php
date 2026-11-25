@@ -52,7 +52,7 @@ it('returns an error for an unknown schedule', function () {
 });
 
 it('creates a schedule', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     CachetServer::tool(CreateSchedule::class, [
         'name' => 'Server Maintenance',
@@ -64,7 +64,7 @@ it('creates a schedule', function () {
 });
 
 it('validates schedule input', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     CachetServer::tool(CreateSchedule::class, [
         'name' => 'Missing everything else',
@@ -72,7 +72,7 @@ it('validates schedule input', function () {
 });
 
 it('updates a schedule', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $schedule = Schedule::factory()->create(['name' => 'Old Name']);
 
@@ -87,7 +87,7 @@ it('updates a schedule', function () {
 });
 
 it('deletes a schedule', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.delete']);
 
     $schedule = Schedule::factory()->create();
 
@@ -98,7 +98,7 @@ it('deletes a schedule', function () {
 });
 
 it('records a schedule update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedule-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedule-updates.manage']);
 
     $schedule = Schedule::factory()->create(['completed_at' => null]);
 
@@ -111,7 +111,7 @@ it('records a schedule update', function () {
 });
 
 it('completes the schedule when recording an update with completed at', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedule-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedule-updates.manage']);
 
     $schedule = Schedule::factory()->create([
         'scheduled_at' => now()->subHour(),
@@ -130,7 +130,7 @@ it('completes the schedule when recording an update with completed at', function
 });
 
 it('edits a schedule update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedule-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedule-updates.manage']);
 
     $schedule = Schedule::factory()->create();
     $update = $schedule->updates()->create(['message' => 'Old message.']);
@@ -145,7 +145,7 @@ it('edits a schedule update', function () {
 });
 
 it('deletes a schedule update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedule-updates.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedule-updates.delete']);
 
     $schedule = Schedule::factory()->create();
     $update = $schedule->updates()->create(['message' => 'Message.']);
@@ -159,7 +159,7 @@ it('deletes a schedule update', function () {
 });
 
 it('accepts iso-8601 datetimes when creating a schedule', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     CachetServer::tool(CreateSchedule::class, [
         'name' => 'Timezone Maintenance',
@@ -173,7 +173,7 @@ it('accepts iso-8601 datetimes when creating a schedule', function () {
 });
 
 it('accepts iso-8601 datetimes when completing a schedule through an update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedule-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedule-updates.manage']);
 
     $schedule = Schedule::factory()->create([
         'scheduled_at' => now()->subHour(),

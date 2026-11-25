@@ -15,6 +15,11 @@ class UpcomingMaintenance extends TableWidget
 
     protected static ?int $sort = 3;
 
+    public static function canView(): bool
+    {
+        return ScheduleResource::canViewAny();
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -37,10 +42,11 @@ class UpcomingMaintenance extends TableWidget
                     ->since()
                     ->tooltip(fn (Schedule $record): string => $record->scheduled_at->toDayDateTimeString()),
             ])
-            ->recordUrl(fn (Schedule $record): string => ScheduleResource::getUrl('edit', ['record' => $record]))
+            ->recordUrl(fn (Schedule $record): string => ScheduleResource::getUrl(ScheduleResource::canEdit($record) ? 'edit' : 'view', ['record' => $record]))
             ->headerActions([
                 Action::make('create')
                     ->label(__('cachet::dashboard.upcoming_maintenance.actions.create'))
+                    ->visible(fn (): bool => ScheduleResource::canCreate())
                     ->url(ScheduleResource::getUrl('create')),
             ])
             ->emptyStateHeading(__('cachet::dashboard.upcoming_maintenance.empty_state.heading'))

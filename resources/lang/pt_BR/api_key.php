@@ -14,7 +14,7 @@ return [
         'expires_at_helper' => 'Expira à meia-noite. Deixe vazio para não expirar',
         'expires_at_validation' => 'A data de expiração deve ser no futuro',
         'abilities_label' => 'Permissões',
-        'abilities_hint' => 'Deixar vazio dará ao token permissões completas',
+        'abilities_hint' => 'Deixar vazio dará ao token todas as permissões que você possui',
     ],
     'list' => [
         'actions' => [

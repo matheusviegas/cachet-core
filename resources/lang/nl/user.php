@@ -9,7 +9,6 @@ return [
             'name' => 'Naam',
             'email' => 'E-mailadres',
             'email_verified_at' => 'E-mail geverifieerd op',
-            'is_admin' => 'Is beheerder?',
         ],
         'actions' => [
             'verify_email' => 'E-mailadres verifiëren',
@@ -22,6 +21,5 @@ return [
         'password_confirmation_label' => 'Bevestig wachtwoord',
         'preferred_locale' => 'Voorkeurstaal',
         'preferred_locale_system_default' => 'Systeemstandaard',
-        'is_admin_label' => 'Beheerder',
     ],
 ];

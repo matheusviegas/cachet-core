@@ -3,100 +3,93 @@
 namespace Cachet\Filament\Widgets;
 
 use Cachet\Actions\Component\ChangeComponentStatus;
+use Cachet\EffectiveComponentStatuses;
 use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\ComponentStatusSourceEnum;
+use Cachet\Filament\Resources\Components\ComponentResource;
+use Cachet\Filament\Widgets\Concerns\PollsFromAppSettings;
 use Cachet\Models\Component;
-use Cachet\Models\ComponentGroup;
-use Filament\Forms\Components\ToggleButtons;
-use Filament\Schemas\Components\Group;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Concerns\InteractsWithSchemas;
-use Filament\Schemas\Contracts\HasSchemas;
-use Filament\Schemas\Schema;
-use Filament\Widgets\Widget;
-use Illuminate\Support\Collection;
+use Filament\Notifications\Notification;
+use Filament\Tables\Columns\SelectColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
+use Illuminate\Database\Eloquent\Builder;
 
-class Components extends Widget implements HasSchemas
+/**
+ * Quick status changes for enabled components, most severe first.
+ *
+ * The table is paginated and searched on the server, so the widget stays the
+ * same size whether there are ten components or thousands.
+ */
+class Components extends TableWidget
 {
-    use InteractsWithSchemas;
-
-    protected string $view = 'cachet::filament.widgets.components';
+    use PollsFromAppSettings;
 
     protected int|string|array $columnSpan = 'full';
 
     protected static ?int $sort = 4;
 
-    public Collection $formData;
-
-    public Collection $components;
-
-    public function mount(): void
+    public static function canView(): bool
     {
-        $this->components = $components = Component::query()
-            ->select(['id', 'component_group_id', 'name', 'status', 'enabled'])
-            ->enabled()
-            ->orderBy('order')
-            ->get();
-
-        $this->formData = $components->mapWithKeys(function (Component $component) {
-            return [$component->id => ['status' => $component->status]];
-        });
+        return ComponentResource::canViewAny();
     }
 
-    public function form(Schema $form): Schema
+    public function table(Table $table): Table
     {
-        $componentGroupSchema = $this->loadComponentGroups()
-            ->filter(fn (ComponentGroup $componentGroup) => $this->components->pluck('component_group_id')->contains($componentGroup->id))
-            ->map(function (ComponentGroup $componentGroup): \Filament\Schemas\Components\Component {
-                return Section::make($componentGroup->name)
-                    ->schema(function () use ($componentGroup) {
-                        return $this->components
-                            ->filter(fn (Component $component) => $component->component_group_id === $componentGroup->getKey())
-                            ->map(fn (Component $component) => Group::make([$this->buildToggleButton($component)]))
-                            ->toArray();
-                    })
-                    ->collapsed($componentGroup->isCollapsible())
-                    ->persistCollapsed();
-            })
-            ->all();
+        return $table
+            ->query(fn (): Builder => app(EffectiveComponentStatuses::class)
+                ->orderBySeverity(Component::query()->enabled()->with('group'))
+                ->orderBy('components.name'))
+            ->heading(trans_choice('cachet::component.resource_label', 2))
+            ->poll($this->getPollingInterval())
+            ->paginated([10, 25, 50])
+            ->defaultPaginationPageOption(10)
+            ->columns([
+                TextColumn::make('name')
+                    ->label(__('cachet::component.list.headers.name'))
+                    ->searchable(),
+                TextColumn::make('group.name')
+                    ->label(__('cachet::component.list.headers.group'))
+                    ->placeholder(__('cachet::component.list.ungrouped')),
+                TextColumn::make('effective_status')
+                    ->label(__('cachet::dashboard.components.effective_status'))
+                    ->state(fn (Component $record): ComponentStatusEnum => app(EffectiveComponentStatuses::class)->of($record))
+                    ->badge(),
+                SelectColumn::make('status')
+                    ->authorize('update')
+                    ->label(__('cachet::dashboard.components.baseline_status'))
+                    ->options(ComponentStatusEnum::class)
+                    ->selectablePlaceholder(false)
+                    ->updateStateUsing(function (Component $record, mixed $state): ComponentStatusEnum {
+                        $status = $state instanceof ComponentStatusEnum ? $state : ComponentStatusEnum::from((int) $state);
 
-        $ungroupedComponentSchema = $this->components
-            ->filter(fn (Component $component) => is_null($component->component_group_id))
-            ->map(function (Component $component): \Filament\Schemas\Components\Component {
-                return Section::make($component->name)
-                    ->schema(fn () => [$this->buildToggleButton($component)])
-                    ->collapsible()
-                    ->persistCollapsed();
-            })
-            ->all();
+                        app(ChangeComponentStatus::class)->handle($record, $status, ComponentStatusSourceEnum::Manual, auth()->user());
 
-        return $form->components([
-            ...$componentGroupSchema,
-            ...$ungroupedComponentSchema,
-        ])->statePath('formData');
-    }
+                        Notification::make()
+                            ->title(__('cachet::dashboard.components.status_updated', ['component' => $record->name, 'status' => $status->getLabel()]))
+                            ->success()
+                            ->send();
 
-    protected function buildToggleButton(Component $component): ToggleButtons
-    {
-        return ToggleButtons::make($component->id.'.status')
-            ->label($component->name)
-            ->hiddenLabel(is_null($component->component_group_id))
-            ->inline()
-            ->live()
-            ->options(ComponentStatusEnum::class)
-            ->afterStateUpdated(fn (ComponentStatusEnum $state) => app(ChangeComponentStatus::class)->handle(
-                $component,
-                $state,
-                ComponentStatusSourceEnum::Manual,
-                auth()->user(),
-            ));
-    }
-
-    protected function loadComponentGroups(): Collection
-    {
-        return ComponentGroup::query()
-            ->select(['id', 'name', 'collapsed', 'visible'])
-            ->orderBy('order')
-            ->get();
+                        return $status;
+                    }),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->label(__('cachet::dashboard.components.effective_status'))
+                    ->options(ComponentStatusEnum::class)
+                    ->multiple()
+                    ->query(fn (Builder $query, array $data): Builder => blank($data['values'] ?? null)
+                        ? $query
+                        : app(EffectiveComponentStatuses::class)->whereStatusIn(
+                            $query,
+                            array_map(fn (mixed $value): ComponentStatusEnum => ComponentStatusEnum::from((int) $value), $data['values']),
+                        )),
+                SelectFilter::make('group')
+                    ->label(__('cachet::component.list.headers.group'))
+                    ->relationship('group', 'name')
+                    ->searchable(),
+            ]);
     }
 }

@@ -125,7 +125,7 @@ it('cannot create a schedule without the token ability', function () {
 });
 
 it('can create a schedule update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedule-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedule-updates.manage']);
 
     $schedule = Schedule::factory()->create();
 
@@ -166,7 +166,7 @@ it('cannot update a schedule without the token ability', function () {
 });
 
 it('can update an schedule update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedule-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedule-updates.manage']);
 
     $scheduleUpdate = Update::factory()->forSchedule()->create();
 
@@ -203,7 +203,7 @@ it('cannot delete a schedule without the token ability', function () {
 });
 
 it('can delete an schedule update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedule-updates.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedule-updates.delete']);
 
     $scheduleUpdate = Update::factory()->forSchedule()->create();
 
@@ -216,7 +216,7 @@ it('can delete an schedule update', function () {
 });
 
 it('cannot delete an schedule update from another schedule', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedule-updates.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedule-updates.delete']);
 
     $schedule = Schedule::factory()->create();
     $scheduleUpdate = Update::factory()->forSchedule()->create();
@@ -248,7 +248,7 @@ it('does not show an update of an unpublished schedule', function () {
 });
 
 it('lists updates of an unpublished schedule to a token that can manage schedules', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $schedule = Schedule::factory()->hasUpdates(2)->create(['published_at' => now()->addYear()]);
 
@@ -259,7 +259,7 @@ it('lists updates of an unpublished schedule to a token that can manage schedule
 });
 
 it('shows an update of an unpublished schedule to a token that can manage schedules', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $schedule = Schedule::factory()->hasUpdates(1)->create(['published_at' => now()->addYear()]);
     $update = $schedule->updates()->first();

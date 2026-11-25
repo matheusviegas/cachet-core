@@ -2,7 +2,6 @@
 
 namespace Cachet;
 
-use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Enums\SystemStatusEnum;
 use Cachet\Models\Component;
@@ -10,7 +9,6 @@ use Cachet\Models\Incident;
 use Cachet\Models\Update;
 use Cachet\Settings\AppSettings;
 use Carbon\CarbonInterface;
-use Illuminate\Database\Eloquent\Builder;
 
 class Status
 {
@@ -135,46 +133,15 @@ class Status
      * Tally the enabled components by their effective status.
      *
      * The database counts the baseline, which is all that most components have.
-     * Only those actually carrying an impact — an unresolved incident or a
-     * maintenance window in progress — are loaded, and each is moved out of its
-     * baseline bucket and into its effective one.
+     * Only those actually carrying an impact are moved out of their baseline
+     * bucket and into their effective one.
      *
      * @return object{total: int, operational: int, performance_issues: int, partial_outage: int, major_outage: int, under_maintenance: int}
      */
     private function tally(): object
     {
-        $counts = Component::query()
-            ->enabled()
-            ->toBase()
-            ->selectRaw('status, count(*) as aggregate')
-            ->groupBy('status')
-            ->pluck('aggregate', 'status');
+        $tally = app(EffectiveComponentStatuses::class)->count(Component::query()->enabled());
 
-        $tally = collect(ComponentStatusEnum::cases())
-            ->mapWithKeys(fn (ComponentStatusEnum $status) => [
-                $status->name => (int) $counts->get($status->value, 0),
-            ]);
-
-        $total = $tally->sum();
-
-        Component::query()
-            ->enabled()
-            ->where(fn (Builder $query) => $query
-                ->whereHas('unresolvedIncidents')
-                ->orWhereHas('activeMaintenance'))
-            ->with(['unresolvedIncidents', 'activeMaintenance'])
-            ->each(function (Component $component) use (&$tally): void {
-                $baseline = $component->status;
-                $effective = $component->latest_status;
-
-                if ($baseline === $effective) {
-                    return;
-                }
-
-                $tally[$baseline->name] = $tally[$baseline->name] - 1;
-                $tally[$effective->name] = $tally[$effective->name] + 1;
-            });
-
-        return (object) [...$tally->all(), 'total' => $total];
+        return (object) [...$tally, 'total' => array_sum($tally)];
     }
 }

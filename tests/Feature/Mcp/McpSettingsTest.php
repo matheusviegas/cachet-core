@@ -40,7 +40,7 @@ it('responds not found by default', function () {
 });
 
 it('responds not found when disabled, even for authenticated users', function () {
-    Sanctum::actingAs(User::factory()->create(), ['*']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['*']);
 
     postJson('/status/mcp', mcpInitializeRequest())
         ->assertNotFound();
@@ -56,7 +56,7 @@ it('requires authentication when the mcp server is protected', function () {
 it('allows authenticated clients to connect when the mcp server is protected', function () {
     enableMcp(protected: true);
 
-    Sanctum::actingAs(User::factory()->create(), ['*']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['*']);
 
     postJson('/status/mcp', mcpInitializeRequest())
         ->assertOk()
@@ -103,7 +103,7 @@ it('only exposes read tools to guests', function () {
 it('exposes write tools matching the token abilities', function () {
     enableMcp(protected: false);
 
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $tools = collect(postJson('/status/mcp', mcpRequest('tools/list'))
         ->assertOk()
@@ -120,7 +120,7 @@ it('exposes write tools matching the token abilities', function () {
 it('exposes every tool to tokens with all abilities', function () {
     enableMcp(protected: false);
 
-    Sanctum::actingAs(User::factory()->create(), ['*']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['*']);
 
     $tools = collect(postJson('/status/mcp', mcpRequest('tools/list', ['per_page' => 50]))
         ->assertOk()

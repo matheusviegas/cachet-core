@@ -206,7 +206,7 @@ it('can filter schedules by meta', function () {
 });
 
 it('can create a schedule with meta', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $response = postJson('/status/api/schedules', [
         'name' => 'Test',
@@ -296,7 +296,7 @@ it('cannot create a schedule without the token ability', function () {
 });
 
 it('can create a schedule', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $response = postJson('/status/api/schedules', [
         'name' => 'New Scheduled Maintenance',
@@ -323,7 +323,7 @@ it('can create a schedule', function () {
 });
 
 it('can create a schedule with ISO 8601 dates', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $response = postJson('/status/api/schedules', [
         'name' => 'New Scheduled Maintenance',
@@ -348,7 +348,7 @@ it('can create a schedule with ISO 8601 dates', function () {
 });
 
 it('can create a schedule with ISO 8601 dates carrying a non-UTC offset', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $response = postJson('/status/api/schedules', [
         'name' => 'New Scheduled Maintenance',
@@ -373,7 +373,7 @@ it('can create a schedule with ISO 8601 dates carrying a non-UTC offset', functi
 });
 
 it('responds with a JSON validation error when the Accept header is not set', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $response = $this->post('/status/api/schedules', [
         'name' => 'Missing Message and Scheduled At',
@@ -385,7 +385,7 @@ it('responds with a JSON validation error when the Accept header is not set', fu
 });
 
 it('cannot create a schedule with a component missing a status', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $component = Component::factory()->create();
 
@@ -403,7 +403,7 @@ it('cannot create a schedule with a component missing a status', function () {
 });
 
 it('can create a schedule with components', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     [$componentA, $componentB] = Component::factory(2)->create();
 
@@ -436,7 +436,7 @@ it('can create a schedule with components', function () {
 });
 
 it('cannot create a schedule with bad data', function (array $payload) {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $response = postJson('/status/api/schedules', $payload);
 
@@ -473,7 +473,7 @@ it('cannot update a schedule without the token ability', function () {
 });
 
 it('can update a schedule', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $schedule = Schedule::factory()->create();
 
@@ -493,7 +493,7 @@ it('can update a schedule', function () {
 });
 
 it('can update a schedule completed_at', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $schedule = Schedule::factory()->create(['completed_at' => null]);
 
@@ -507,7 +507,7 @@ it('can update a schedule completed_at', function () {
 });
 
 it('can update a schedule with components', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     [$componentA, $componentB] = Component::factory(2)->create();
 
@@ -533,7 +533,7 @@ it('can update a schedule with components', function () {
 });
 
 it('can remove every component from a schedule', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $schedule = Schedule::factory()->create();
     $schedule->components()->attach(Component::factory()->create(), [
@@ -566,7 +566,7 @@ it('cannot delete a schedule without the token ability', function () {
 });
 
 it('can delete a schedule', function () {
-    Sanctum::actingAs(User::factory()->create(), ['schedules.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.delete']);
 
     $schedule = Schedule::factory()->create();
 

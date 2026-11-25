@@ -3,226 +3,96 @@
 namespace Tests\Feature\Filament\Widgets;
 
 use Cachet\Enums\ComponentStatusEnum;
+use Cachet\Enums\ComponentStatusSourceEnum;
+use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Enums\ResourceVisibilityEnum;
 use Cachet\Filament\Widgets\Components;
 use Cachet\Models\Component;
 use Cachet\Models\ComponentGroup;
+use Cachet\Models\Incident;
+use Filament\Facades\Filament;
+use Workbench\App\User;
 
+use function Pest\Laravel\actingAs;
 use function Pest\Livewire\livewire;
-use function PHPUnit\Framework\assertCount;
-use function PHPUnit\Framework\assertEquals;
 
-it('component smoke test', function () {
-    $component = livewire(Components::class);
+beforeEach(function () {
+    Filament::setCurrentPanel(Filament::getPanel('cachet'));
 
-    $component->assertSuccessful();
+    actingAs(User::factory()->administrator()->create());
 });
 
-it('shows component groups of every visibility', function () {
-    foreach ([
-        'Guest Group' => ResourceVisibilityEnum::guest,
-        'Authenticated Group' => ResourceVisibilityEnum::authenticated,
-        'Hidden Group' => ResourceVisibilityEnum::hidden,
-    ] as $name => $visibility) {
-        $componentGroup = ComponentGroup::factory()->create([
-            'name' => $name,
-            'visible' => $visibility,
-        ]);
+it('only lists enabled components', function () {
+    $enabled = Component::factory()->create(['enabled' => true]);
+    $disabled = Component::factory()->create(['enabled' => false]);
 
-        Component::factory()->create([
-            'component_group_id' => $componentGroup->id,
-            'enabled' => true,
-        ]);
-    }
-
-    $component = livewire(Components::class);
-
-    $component->assertSuccessful();
-
-    $component->assertSee('Guest Group');
-    $component->assertSee('Authenticated Group');
-    $component->assertSee('Hidden Group');
-    $component->assertDontSee('Other Components');
+    livewire(Components::class)
+        ->assertCanSeeTableRecords([$enabled])
+        ->assertCanNotSeeTableRecords([$disabled]);
 });
 
-it('does not show component groups with no components', function () {
-    $componentGroup = ComponentGroup::factory()->create([
-        'name' => 'Group With Components',
-    ]);
+it('lists components of groups of every visibility', function (ResourceVisibilityEnum $visibility) {
+    $group = ComponentGroup::factory()->create(['name' => 'Robots', 'visible' => $visibility]);
+    $component = Component::factory()->for($group, 'group')->create();
 
-    Component::factory()->create([
-        'component_group_id' => $componentGroup->id,
-        'enabled' => true,
-    ]);
+    livewire(Components::class)
+        ->assertCanSeeTableRecords([$component])
+        ->assertTableColumnStateSet('group.name', 'Robots', $component);
+})->with(ResourceVisibilityEnum::cases());
 
-    ComponentGroup::factory()->create([
-        'name' => 'Empty Group',
-    ]);
+it('lists the most severe components first', function () {
+    $operational = Component::factory()->create(['name' => 'A', 'status' => ComponentStatusEnum::operational]);
+    $partial = Component::factory()->create(['name' => 'B', 'status' => ComponentStatusEnum::partial_outage]);
+    $impacted = Component::factory()->create(['name' => 'C', 'status' => ComponentStatusEnum::operational]);
+    $incident = Incident::factory()->create(['status' => IncidentStatusEnum::investigating, 'visible' => ResourceVisibilityEnum::guest]);
+    $incident->components()->attach($impacted->id, ['component_status' => ComponentStatusEnum::major_outage]);
 
-    $component = livewire(Components::class);
-
-    $component->assertSuccessful();
-
-    $component->assertSee('Group With Components');
-    $component->assertDontSee('Empty Group');
+    livewire(Components::class)
+        ->assertCanSeeTableRecords([$impacted, $partial, $operational], inOrder: true)
+        ->assertTableColumnStateSet('effective_status', ComponentStatusEnum::major_outage, $impacted);
 });
 
-it('will only show enabled components', function () {
-    $componentGroup = ComponentGroup::factory()->create([
-        'name' => 'Laravel',
-        'visible' => true,
-    ]);
+it('paginates instead of rendering every component', function () {
+    Component::factory()->count(15)->create();
 
-    Component::factory()->create([
-        'name' => 'Forge',
-        'component_group_id' => $componentGroup->id,
-        'enabled' => true,
-    ]);
+    $widget = livewire(Components::class)->assertCountTableRecords(15);
 
-    Component::factory()->create([
-        'name' => 'Cloud',
-        'component_group_id' => $componentGroup->id,
-        'enabled' => false,
-    ]);
-
-    $component = livewire(Components::class);
-
-    $component->assertSuccessful();
-
-    assertCount(1, $component->components);
-
-    $component->assertSee('Forge');
-    $component->assertDontSee('Cloud');
+    expect($widget->instance()->getTableRecords())->toHaveCount(10);
 });
 
-it('will show component groups in the correct order', function () {
-    $componentGroup1 = ComponentGroup::factory()->create([
-        'name' => 'Test Component Group 1',
-        'visible' => true,
-        'order' => 2,
-    ]);
+it('searches components by name', function () {
+    $invoices = Component::factory()->create(['name' => 'Invoice robot']);
+    $payroll = Component::factory()->create(['name' => 'Payroll robot']);
 
-    Component::factory()->create([
-        'component_group_id' => $componentGroup1->id,
-    ]);
-
-    $componentGroup2 = ComponentGroup::factory()->create([
-        'name' => 'Test Component Group 2',
-        'visible' => true,
-        'order' => 1,
-    ]);
-
-    Component::factory()->create([
-        'component_group_id' => $componentGroup2->id,
-    ]);
-
-    $component = livewire(Components::class);
-
-    $component->assertSuccessful();
-
-    assertCount(2, $component->components);
-
-    $component->assertSeeInOrder(['Test Component Group 2', 'Test Component Group 1']);
+    livewire(Components::class)
+        ->searchTable('invoice')
+        ->assertCanSeeTableRecords([$invoices])
+        ->assertCanNotSeeTableRecords([$payroll]);
 });
 
-it('will show grouped components in the correct order', function () {
-    $componentGroup = ComponentGroup::factory()->create([
-        'name' => 'Laravel',
-        'visible' => true,
-    ]);
+it('filters components by effective status and group', function () {
+    $group = ComponentGroup::factory()->create();
+    $down = Component::factory()->for($group, 'group')->create(['status' => ComponentStatusEnum::major_outage]);
+    $up = Component::factory()->create(['status' => ComponentStatusEnum::operational]);
 
-    Component::factory()->create([
-        'name' => 'Forge',
-        'component_group_id' => $componentGroup->id,
-        'order' => 2,
-    ]);
-
-    Component::factory()->create([
-        'name' => 'Cloud',
-        'component_group_id' => $componentGroup->id,
-        'order' => 1,
-    ]);
-
-    $component = livewire(Components::class);
-
-    $component->assertSuccessful();
-
-    assertCount(2, $component->components);
-
-    $component->assertSeeInOrder(['Cloud', 'Forge']);
+    livewire(Components::class)
+        ->filterTable('status', [ComponentStatusEnum::major_outage->value])
+        ->assertCanSeeTableRecords([$down])
+        ->assertCanNotSeeTableRecords([$up])
+        ->resetTableFilters()
+        ->filterTable('group', $group->id)
+        ->assertCanSeeTableRecords([$down])
+        ->assertCanNotSeeTableRecords([$up]);
 });
 
-it('will not show component groups without components', function () {
-    ComponentGroup::factory()->create([
-        'name' => 'Laravel',
-        'visible' => true,
-    ]);
+it('changes a component status and records the change', function () {
+    $component = Component::factory()->create(['status' => ComponentStatusEnum::operational]);
 
-    $component = livewire(Components::class);
+    livewire(Components::class)
+        ->call('updateTableColumnState', 'status', (string) $component->getKey(), ComponentStatusEnum::major_outage->value);
 
-    $component->assertSuccessful();
-
-    $component->assertDontSee('Laravel');
-});
-
-it('will show enabled components without group', function () {
-    Component::factory()->create([
-        'name' => 'Github',
-        'enabled' => true,
-    ]);
-
-    Component::factory()->create([
-        'name' => 'Bitbucket',
-        'enabled' => false,
-    ]);
-
-    $component = livewire(Components::class);
-
-    $component->assertSuccessful();
-
-    $component->assertSee('Github');
-    $component->assertDontSee('Bitbucket');
-});
-
-it('can save status of component within component group to have major outage', function () {
-    $componentGroup = ComponentGroup::factory()->create([
-        'name' => 'Laravel',
-        'visible' => true,
-    ]);
-
-    $component = Component::factory()->create([
-        'name' => 'Forge',
-        'component_group_id' => $componentGroup->id,
-        'status' => ComponentStatusEnum::operational,
-    ]);
-
-    $livewireComponent = livewire(Components::class);
-
-    $livewireComponent->assertSuccessful();
-
-    $livewireComponent->set(
-        'formData.'.$component->id.'.status',
-        ComponentStatusEnum::major_outage->value
-    );
-
-    assertEquals(ComponentStatusEnum::major_outage, $component->fresh()->status);
-});
-
-it('can save status of component outside a component group to have major outage', function () {
-    $component = Component::factory()->create([
-        'name' => 'Github',
-        'status' => ComponentStatusEnum::operational,
-        'enabled' => true,
-    ]);
-
-    $livewireComponent = livewire(Components::class);
-
-    $livewireComponent->assertSuccessful();
-
-    $livewireComponent->set(
-        'formData.'.$component->id.'.status',
-        ComponentStatusEnum::major_outage->value
-    );
-
-    assertEquals(ComponentStatusEnum::major_outage, $component->fresh()->status);
+    expect($component->fresh()->status)->toBe(ComponentStatusEnum::major_outage)
+        ->and($component->statusChanges()->sole())
+        ->new_status->toBe(ComponentStatusEnum::major_outage)
+        ->source->toBe(ComponentStatusSourceEnum::Manual);
 });

@@ -2,6 +2,7 @@
 
 namespace Cachet\Settings;
 
+use Cachet\Enums\ComponentLayoutEnum;
 use Spatie\LaravelSettings\Settings;
 
 class AppSettings extends Settings
@@ -57,6 +58,8 @@ class AppSettings extends Settings
     public bool $show_component_tags = false;
 
     public bool $display_system_status = false;
+
+    public ComponentLayoutEnum $component_layout = ComponentLayoutEnum::groups;
 
     public static function group(): string
     {

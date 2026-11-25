@@ -5,8 +5,14 @@ namespace Tests\Feature\Filament\Widgets;
 use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Filament\Widgets\OpenIncidents;
 use Cachet\Models\Incident;
+use Cachet\Models\User;
 
+use function Pest\Laravel\actingAs;
 use function Pest\Livewire\livewire;
+
+beforeEach(function () {
+    actingAs(User::factory()->administrator()->create());
+});
 
 it('open incidents smoke test', function () {
     $component = livewire(OpenIncidents::class);
@@ -47,4 +53,19 @@ it('shows the empty state when there are no open incidents', function () {
     $component->assertSuccessful();
 
     $component->assertSee(__('cachet::dashboard.open_incidents.empty_state.heading'));
+});
+
+it('uses the created time for incidents without an occurred time', function () {
+    $older = Incident::factory()->create([
+        'status' => IncidentStatusEnum::investigating,
+        'occurred_at' => now()->subDays(2),
+    ]);
+    $newer = Incident::factory()->create([
+        'status' => IncidentStatusEnum::investigating,
+        'occurred_at' => null,
+    ]);
+
+    livewire(OpenIncidents::class)
+        ->assertCanSeeTableRecords([$newer, $older], inOrder: true)
+        ->assertTableColumnStateSet('occurred_at', $newer->created_at, $newer);
 });

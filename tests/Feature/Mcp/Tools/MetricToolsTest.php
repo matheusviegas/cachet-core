@@ -47,7 +47,7 @@ it('returns an error for an unknown metric', function () {
 });
 
 it('creates a metric', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.manage']);
 
     CachetServer::tool(CreateMetric::class, [
         'name' => 'API Latency',
@@ -58,7 +58,7 @@ it('creates a metric', function () {
 });
 
 it('updates a metric', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.manage']);
 
     $metric = Metric::factory()->create(['suffix' => 'ms']);
 
@@ -73,7 +73,7 @@ it('updates a metric', function () {
 });
 
 it('deletes a metric', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.delete']);
 
     $metric = Metric::factory()->create();
 
@@ -84,7 +84,7 @@ it('deletes a metric', function () {
 });
 
 it('adds a metric point', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metric-points.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metric-points.manage']);
 
     $metric = Metric::factory()->create();
 
@@ -97,7 +97,7 @@ it('adds a metric point', function () {
 });
 
 it('deletes a metric point', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metric-points.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metric-points.delete']);
 
     $metric = Metric::factory()->create();
     $point = $metric->metricPoints()->create(['value' => 10]);
@@ -111,7 +111,7 @@ it('deletes a metric point', function () {
 });
 
 it('scopes metric points to the metric', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metric-points.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metric-points.delete']);
 
     $metric = Metric::factory()->create();
     $other = Metric::factory()->create();

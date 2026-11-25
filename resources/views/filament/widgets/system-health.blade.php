@@ -7,9 +7,11 @@
                         {{ __('cachet::dashboard.system_health.empty') }}
                     </p>
 
-                    <x-filament::link :href="$createComponentUrl">
-                        {{ __('cachet::dashboard.system_health.add_component') }}
-                    </x-filament::link>
+                    @if ($createComponentUrl)
+                        <x-filament::link :href="$createComponentUrl">
+                            {{ __('cachet::dashboard.system_health.add_component') }}
+                        </x-filament::link>
+                    @endif
                 </div>
             @else
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

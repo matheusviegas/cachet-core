@@ -91,3 +91,35 @@ it('can determine a schedule\'s completed status', function () {
 
     expect($schedule)->status->toBe(ScheduleStatusEnum::complete);
 });
+
+it('formats the maintenance window duration', function (int $minutes, string $locale, string $expected) {
+    app()->setLocale($locale);
+
+    $schedule = Schedule::factory()->make([
+        'scheduled_at' => Carbon::create(2026, 11, 25, 10),
+        'completed_at' => Carbon::create(2026, 11, 25, 10)->addMinutes($minutes),
+    ]);
+
+    expect($schedule->formattedDuration())->toBe($expected);
+})->with([
+    '30 minutes' => [30, 'pt_BR', '30 minutos'],
+    '1 day 30 minutes' => [24 * 60 + 30, 'pt_BR', '1 dia e 30 minutos'],
+    '5 hours 15 minutes' => [5 * 60 + 15, 'pt_BR', '5 horas e 15 minutos'],
+    '49 hours 20 minutes' => [49 * 60 + 20, 'pt_BR', '2 dias, 1 hora e 20 minutos'],
+    '5 hours' => [5 * 60, 'pt_BR', '5 horas'],
+    'days instead of weeks' => [10 * 24 * 60, 'pt_BR', '10 dias'],
+    'english' => [49 * 60 + 20, 'en', '2 days, 1 hour and 20 minutes'],
+]);
+
+it('has no duration without an end or with an empty window', function (?Carbon $completedAt) {
+    $schedule = Schedule::factory()->make([
+        'scheduled_at' => Carbon::create(2026, 11, 25, 10),
+        'completed_at' => $completedAt,
+    ]);
+
+    expect($schedule->formattedDuration())->toBeNull();
+})->with([
+    'no end' => [null],
+    'same time' => [Carbon::create(2026, 11, 25, 10)],
+    'end before start' => [Carbon::create(2026, 11, 25, 9)],
+]);

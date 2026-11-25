@@ -1,17 +1,41 @@
 @use('Cachet\Cachet')
+@use('Cachet\Enums\ThemeModeEnum')
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="bg-accent-background text-zinc-700 dark:text-zinc-300">
+<html
+    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    data-theme-mode="{{ $theme_mode->value }}"
+    @class([
+        'bg-accent-background text-zinc-700 dark:text-zinc-300',
+        'light' => $theme_mode === ThemeModeEnum::light,
+        'dark' => $theme_mode === ThemeModeEnum::dark,
+    ])
+>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        @if ($favicon)
+        @if ($theme_mode === ThemeModeEnum::auto)
+        <script>
+            (() => {
+                let theme = 'auto'
+                try { theme = localStorage.getItem('cachet.theme') ?? 'auto' } catch {}
+                const dark = theme === 'dark' || (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+                document.documentElement.classList.toggle('dark', dark)
+                document.documentElement.classList.toggle('light', !dark)
+            })()
+        </script>
+        @endif
+
+        {{-- A status favicon during incidents and maintenance wins over the uploaded one. --}}
+        @if ($statusFavicon)
         <link rel="icon" href="{{ asset('vendor/cachethq/cachet/favicon.ico') }}" sizes="32x32" />
-        <link rel="icon" href="{{ $favicon }}" type="image/svg+xml" sizes="any" />
+        <link rel="icon" href="{{ $statusFavicon }}" type="image/svg+xml" sizes="any" />
+        @elseif ($customFavicon)
+        <link rel="icon" href="{{ $customFavicon['url'] }}" type="{{ $customFavicon['type'] }}" />
         @else
         <link rel="shortcut icon" href="{{ asset('vendor/cachethq/cachet/favicon.ico') }}" />
         @endif
-        <link rel="apple-touch-icon" href="{{ asset('vendor/cachethq/cachet/apple-touch-icon.png') }}" />
+        <link rel="apple-touch-icon" href="{{ $appleTouchIcon }}" />
 
         <title>{{ $title ?: config('cachet.title', 'Cachet') }}</title>
         <meta name="title" content="{{ $title ?: config('cachet.title', 'Cachet') }}" />

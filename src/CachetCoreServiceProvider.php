@@ -10,6 +10,7 @@ use Cachet\Commands\MakeUserCommand;
 use Cachet\Commands\NotifyCompletedSchedulesCommand;
 use Cachet\Commands\NotifyLongRunningIncidentsCommand;
 use Cachet\Commands\PublishScheduledCommand;
+use Cachet\Commands\RecordUptimeCommand;
 use Cachet\Commands\SendBeaconCommand;
 use Cachet\Commands\VersionCommand;
 use Cachet\Database\Seeders\DatabaseSeeder;
@@ -20,12 +21,24 @@ use Cachet\Mcp\CachetServer;
 use Cachet\Models\Component;
 use Cachet\Models\ComponentCheck;
 use Cachet\Models\ComponentGroup;
+use Cachet\Models\ComponentUptimeDay;
+use Cachet\Models\Group;
 use Cachet\Models\Incident;
+use Cachet\Models\IncidentTemplate;
+use Cachet\Models\Metric;
+use Cachet\Models\MetricPoint;
 use Cachet\Models\Schedule;
 use Cachet\Models\Subscriber;
+use Cachet\Models\Update;
 use Cachet\Models\WebhookAttempt;
+use Cachet\Models\WebhookSubscription;
+use Cachet\Policies\GroupPolicy;
+use Cachet\Policies\ResourcePolicy;
+use Cachet\Policies\UpdatePolicy;
 use Cachet\Settings\AppSettings;
+use Cachet\Settings\CustomizationSettings;
 use Cachet\Settings\MailSettings;
+use Cachet\Settings\ThemeSettings;
 use Cachet\View\Composers\MailThemeComposer;
 use Cachet\View\ViewManager;
 use Dedoc\Scramble\Scramble;
@@ -37,6 +50,7 @@ use Dedoc\Scramble\Support\RouteInfo;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Console\AboutCommand;
@@ -44,11 +58,15 @@ use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 use Laravel\Mcp\Facades\Mcp;
+use Spatie\LaravelSettings\Settings;
+use Spatie\LaravelSettings\SettingsContainer;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
 
@@ -66,9 +84,68 @@ class CachetCoreServiceProvider extends ServiceProvider
         $this->app->singleton(Cachet::class);
         $this->app->singleton(ViewManager::class);
         $this->app->scoped(Status::class);
+        $this->app->scoped(EffectiveComponentStatuses::class);
         $this->app->register(BadgerServiceProvider::class);
 
         $this->configureSettingsCache();
+        $this->registerSettingsClasses();
+    }
+
+    /**
+     * The settings classes shipped by Cachet.
+     *
+     * @var list<class-string<Settings>>
+     */
+    private const SETTINGS_CLASSES = [
+        AppSettings::class,
+        CustomizationSettings::class,
+        MailSettings::class,
+        ThemeSettings::class,
+    ];
+
+    /**
+     * The permission resource guarding each model.
+     *
+     * @var array<class-string<Model>, string>
+     */
+    private const POLICY_RESOURCES = [
+        Component::class => 'components',
+        ComponentCheck::class => 'components',
+        ComponentGroup::class => 'component-groups',
+        Incident::class => 'incidents',
+        IncidentTemplate::class => 'incident-templates',
+        Metric::class => 'metrics',
+        MetricPoint::class => 'metric-points',
+        Schedule::class => 'schedules',
+        Subscriber::class => 'subscribers',
+        WebhookSubscription::class => 'webhooks',
+    ];
+
+    /**
+     * Register Cachet's settings classes with spatie/laravel-settings.
+     *
+     * Auto-discovery only scans the host application, so without this every
+     * resolution built a new instance and read the settings table, bypassing
+     * the settings cache entirely (one query per rendered component).
+     */
+    private function registerSettingsClasses(): void
+    {
+        config()->set('settings.settings', array_values(array_unique([
+            ...(array) config('settings.settings', []),
+            ...self::SETTINGS_CLASSES,
+        ])));
+    }
+
+    /**
+     * Bind the settings classes as scoped instances when the settings provider registered first.
+     */
+    private function bindSettingsClasses(): void
+    {
+        if ($this->app->bound(AppSettings::class)) {
+            return;
+        }
+
+        $this->app->make(SettingsContainer::class)->clearCache()->registerBindings();
     }
 
     /**
@@ -101,6 +178,8 @@ class CachetCoreServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->bindSettingsClasses();
+
         if (! $this->app->configurationIsCached()) {
             $this->mergeConfigFrom(__DIR__.'/../config/cachet.php', 'cachet');
         }
@@ -119,6 +198,7 @@ class CachetCoreServiceProvider extends ServiceProvider
             'subscriber' => Subscriber::class,
         ]);
 
+        $this->registerPolicies();
         $this->registerCommands();
         $this->registerSchedules();
         $this->registerResources();
@@ -142,6 +222,26 @@ class CachetCoreServiceProvider extends ServiceProvider
     }
 
     /**
+     * Guard Cachet's models with group permissions.
+     *
+     * Most models share ResourcePolicy, so each gets a container binding
+     * that builds it for its resource, e.g. "cachet.policy.incidents".
+     */
+    private function registerPolicies(): void
+    {
+        foreach (self::POLICY_RESOURCES as $model => $resource) {
+            $binding = "cachet.policy.{$resource}";
+
+            $this->app->singletonIf($binding, fn (): ResourcePolicy => new ResourcePolicy($resource));
+
+            Gate::policy($model, $binding);
+        }
+
+        Gate::policy(Update::class, UpdatePolicy::class);
+        Gate::policy(Group::class, GroupPolicy::class);
+    }
+
+    /**
      * Register the package's resources such as routes, migrations, etc.
      */
     private function registerResources(): void
@@ -153,6 +253,9 @@ class CachetCoreServiceProvider extends ServiceProvider
         }
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'cachet');
+
+        // Translates Laravel's own strings, such as the verification email.
+        $this->loadJsonTranslationsFrom(__DIR__.'/../resources/lang');
 
         $this->configureRateLimiting();
         $this->registerRoutes();
@@ -269,7 +372,9 @@ class CachetCoreServiceProvider extends ServiceProvider
      */
     private function registerBladeComponents(): void
     {
-        view()->share('appSettings', app(AppSettings::class));
+        // Shared lazily: resolving the settings reads the cache store, which may
+        // not exist yet while commands such as migrate boot the app.
+        view()->composer('*', fn (View $view) => $view->with('appSettings', app(AppSettings::class)));
         view()->composer('cachet::mail.*', MailThemeComposer::class);
         Blade::componentNamespace('Cachet\\View\\Components', 'cachet');
 
@@ -294,6 +399,7 @@ class CachetCoreServiceProvider extends ServiceProvider
                 NotifyCompletedSchedulesCommand::class,
                 NotifyLongRunningIncidentsCommand::class,
                 PublishScheduledCommand::class,
+                RecordUptimeCommand::class,
                 SendBeaconCommand::class,
                 VersionCommand::class,
             ]);
@@ -332,8 +438,10 @@ class CachetCoreServiceProvider extends ServiceProvider
 
             $schedule->command('cachet:publish-scheduled')->everyMinute();
 
+            $schedule->command('cachet:record-uptime')->everyFifteenMinutes()->withoutOverlapping();
+
             $schedule->command('model:prune', [
-                '--model' => [WebhookAttempt::class, ComponentCheck::class],
+                '--model' => [WebhookAttempt::class, ComponentCheck::class, ComponentUptimeDay::class],
             ])->daily();
 
             $schedule->command('db:seed', [

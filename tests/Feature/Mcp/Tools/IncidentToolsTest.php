@@ -75,8 +75,18 @@ it('hides incident write tools from guests', function () {
     ])->assertHasErrors();
 });
 
+it('hides incident write tools when the token owner lacks the permission', function () {
+    Sanctum::actingAs(User::factory()->withPermissions(['incidents.view'])->create(), ['incidents.manage']);
+
+    CachetServer::tool(CreateIncident::class, [
+        'name' => 'Incident',
+        'status' => IncidentStatusEnum::investigating->value,
+        'message' => 'Something broke.',
+    ])->assertHasErrors();
+});
+
 it('creates an incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     CachetServer::tool(CreateIncident::class, [
         'name' => 'API Slowdown',
@@ -88,7 +98,7 @@ it('creates an incident', function () {
 });
 
 it('creates an incident and updates the affected components', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $component = Component::factory()->create(['status' => ComponentStatusEnum::operational]);
 
@@ -109,7 +119,7 @@ it('creates an incident and updates the affected components', function () {
 });
 
 it('creates an incident from a template', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     IncidentTemplate::factory()->create([
         'slug' => 'server-fire',
@@ -124,7 +134,7 @@ it('creates an incident from a template', function () {
 });
 
 it('requires a message or template when creating an incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     CachetServer::tool(CreateIncident::class, [
         'name' => 'Incident',
@@ -133,7 +143,7 @@ it('requires a message or template when creating an incident', function () {
 });
 
 it('updates an incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $incident = Incident::factory()->create(['stickied' => false]);
 
@@ -148,7 +158,7 @@ it('updates an incident', function () {
 });
 
 it('deletes an incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.delete']);
 
     $incident = Incident::factory()->create();
 
@@ -159,7 +169,7 @@ it('deletes an incident', function () {
 });
 
 it('records an incident update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incident = Incident::factory()->create(['status' => IncidentStatusEnum::investigating]);
 
@@ -173,7 +183,7 @@ it('records an incident update', function () {
 });
 
 it('resolves the incident but keeps the impact it recorded when a fixed update lands', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $component = Component::factory()->create(['status' => ComponentStatusEnum::major_outage]);
     $incident = Incident::factory()->create(['status' => IncidentStatusEnum::identified]);
@@ -190,7 +200,7 @@ it('resolves the incident but keeps the impact it recorded when a fixed update l
 });
 
 it('edits an incident update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incident = Incident::factory()->create();
     $update = $incident->updates()->create(['status' => IncidentStatusEnum::watching, 'message' => 'Old message.']);
@@ -205,7 +215,7 @@ it('edits an incident update', function () {
 });
 
 it('deletes an incident update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.delete']);
 
     $incident = Incident::factory()->create();
     $update = $incident->updates()->create(['status' => IncidentStatusEnum::watching, 'message' => 'Message.']);
@@ -219,7 +229,7 @@ it('deletes an incident update', function () {
 });
 
 it('scopes incident updates to the incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incident = Incident::factory()->create();
     $other = Incident::factory()->create();
@@ -241,7 +251,7 @@ it('lists incident templates', function () {
 });
 
 it('creates an incident template', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-templates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-templates.manage']);
 
     CachetServer::tool(CreateIncidentTemplate::class, [
         'name' => 'Third Party Outage',
@@ -252,7 +262,7 @@ it('creates an incident template', function () {
 });
 
 it('updates an incident template', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-templates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-templates.manage']);
 
     $template = IncidentTemplate::factory()->create();
 
@@ -265,7 +275,7 @@ it('updates an incident template', function () {
 });
 
 it('deletes an incident template', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-templates.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-templates.delete']);
 
     $template = IncidentTemplate::factory()->create();
 
@@ -317,7 +327,7 @@ it('reveals authenticated-only incidents by id to authenticated callers', functi
 });
 
 it('overlays the displayed component status while an incident is unresolved', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $component = Component::factory()->create(['status' => ComponentStatusEnum::operational]);
 
@@ -340,7 +350,7 @@ it('overlays the displayed component status while an incident is unresolved', fu
 });
 
 it('keeps an incident nobody can see out of the displayed component status', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $component = Component::factory()->create(['status' => ComponentStatusEnum::operational]);
 
@@ -363,7 +373,7 @@ it('keeps an incident nobody can see out of the displayed component status', fun
 });
 
 it('restores the displayed component status when the incident is fixed', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage', 'incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage', 'incident-updates.manage']);
 
     $component = Component::factory()->create(['status' => ComponentStatusEnum::operational]);
     $incident = Incident::factory()->create(['status' => IncidentStatusEnum::identified]);

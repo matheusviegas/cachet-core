@@ -67,7 +67,7 @@ it('hides the updates of an embargoed incident from the api', function () {
 });
 
 it('exposes the updates of an embargoed incident to a token that can manage incidents', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $incident = Incident::factory()->create([
         'visible' => ResourceVisibilityEnum::guest,

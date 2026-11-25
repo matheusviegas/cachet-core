@@ -33,13 +33,13 @@
                                     <a href="{{ route('cachet.status-page.incident', $incident) }}" class="transition hover:text-accent-content">{{ $incident->name }}</a>
                                 </h3>
                             @endif
-                            @auth
+                            @can('update', $incident)
                                 <a href="{{ $incident->filamentDashboardEditUrl() }}"
                                    class="text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
                                    title="{{ __('cachet::incident.edit_button_title') }}">
                                     <x-heroicon-m-pencil-square class="size-4" />
                                 </a>
-                            @endauth
+                            @endcan
                         </div>
                         <span data-slot="timestamp" class="text-xs text-zinc-500 dark:text-zinc-400">
                             <x-cachet::timestamp :timestamp="$incident->timestamp" />
@@ -52,7 +52,13 @@
 
                 @if ($incident->components->isNotEmpty())
                     <div data-slot="affected-components" class="text-xs text-zinc-500 dark:text-zinc-400">
-                        {{ __('Affected Components') }}: {{ $incident->components->pluck('name')->join(', ', ' and ') }}
+                        {{ __('cachet::incident.affected_components_header') }}:
+                        
+                        @foreach ($incident->components as $component)
+                            <a href="{{ route('cachet.status-page.component', ['component' => $component]) }}" class="inline-block bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-300 rounded-full px-2 py-1 text-xs font-medium me-1">
+                                {{ $component->name }}
+                            </a>
+                        @endforeach
                     </div>
                 @endif
             </div>
@@ -82,9 +88,9 @@
                             @php($reportStatus = $incident->updates->isEmpty() ? $incident->status : null)
                             <x-cachet::incident-update-status :status="$reportStatus ?? IncidentStatusEnum::unknown" />
                             @if ($headingLevel === 1)
-                                <h2 class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-base">{{ $reportStatus?->getLabel() ?? __('Reported') }}</h2>
+                                <h2 class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-base">{{ $reportStatus?->getLabel() ?? __('cachet::incident.status.reported') }}</h2>
                             @else
-                                <h3 class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-base">{{ $reportStatus?->getLabel() ?? __('Reported') }}</h3>
+                                <h3 class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 sm:text-base">{{ $reportStatus?->getLabel() ?? __('cachet::incident.status.reported') }}</h3>
                             @endif
                             <span class="text-xs text-zinc-500 dark:text-zinc-400">
                                 <x-cachet::timestamp :timestamp="$incident->timestamp" />
@@ -122,7 +128,13 @@
 
                 @if ($schedule->components->isNotEmpty())
                     <div data-slot="affected-components" class="text-xs text-zinc-500 dark:text-zinc-400">
-                        {{ __('Affected Components') }}: {{ $schedule->components->pluck('name')->join(', ', ' and ') }}
+                        {{ __('cachet::incident.affected_components_header') }}:
+                        
+                        @foreach ($schedule->components as $component)
+                            <a href="{{ route('cachet.status-page.component', ['component' => $component]) }}" class="inline-block bg-zinc-200 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-300 rounded-full px-2 py-1 text-xs font-medium me-1">
+                                {{ $component->name }}
+                            </a>
+                        @endforeach
                     </div>
                 @endif
 

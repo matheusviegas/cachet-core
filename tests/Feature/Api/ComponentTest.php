@@ -194,7 +194,7 @@ it('can filter components by typed meta values', function () {
 });
 
 it('can create a component with meta', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $response = postJson('/status/api/components', [
         'name' => 'Test',
@@ -253,7 +253,7 @@ it('can get a component with group', function () {
 });
 
 it('cannot create a component with a javascript link', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $response = postJson('/status/api/components', [
         'name' => 'Test',
@@ -265,7 +265,7 @@ it('cannot create a component with a javascript link', function () {
 });
 
 it('can create a component with an http link', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $response = postJson('/status/api/components', [
         'name' => 'Test',
@@ -298,7 +298,7 @@ it('cannot create a component without the token ability', function () {
 });
 
 it('can create a component', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $response = postJson('/status/api/components', [
         'name' => 'Test',
@@ -319,7 +319,7 @@ it('can create a component', function () {
 });
 
 it('can create a component and attach to a component group', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $componentGroup = ComponentGroup::factory()->create();
     $response = postJson('/status/api/components', [
@@ -340,7 +340,7 @@ it('can create a component and attach to a component group', function () {
 });
 
 it('cannot attach a new component to a component group that does not exist', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $response = postJson('/status/api/components', [
         'name' => 'Test',
@@ -385,7 +385,7 @@ it('cannot update a component without the token ability', function () {
 });
 
 it('can update a component', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $component = Component::factory()->create([
         'order' => 10,
@@ -409,7 +409,7 @@ it('can update a component', function () {
 });
 
 it('does not re-enable a disabled component when enabled is omitted from an update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $component = Component::factory()->disabled()->create();
 
@@ -426,7 +426,7 @@ it('does not re-enable a disabled component when enabled is omitted from an upda
 });
 
 it('can enable a component via an update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $component = Component::factory()->disabled()->create();
 
@@ -442,7 +442,7 @@ it('can enable a component via an update', function () {
 });
 
 it('can update a component and attach it to a component group', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $componentGroup = ComponentGroup::factory()->create();
     $component = Component::factory()->create([
@@ -469,7 +469,7 @@ it('can update a component and attach it to a component group', function () {
 });
 
 it('cannot update a component and attach it to a component group that does not exist', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $component = Component::factory()->create();
 
@@ -495,7 +495,7 @@ it('cannot delete a component when not authenticated', function () {
 });
 
 it('cannot delete a component without the token ability', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.manage']);
 
     $component = Component::factory()->create();
 
@@ -505,7 +505,7 @@ it('cannot delete a component without the token ability', function () {
 });
 
 it('can delete a component', function () {
-    Sanctum::actingAs(User::factory()->create(), ['components.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.delete']);
 
     $component = Component::factory()->create();
 
@@ -637,7 +637,7 @@ it('does not include incidents that are not yet published on visible components'
 });
 
 it('includes unpublished incidents on visible components for incident managers', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $component = Component::factory()->enabled()->create();
     $component->incidents()->attach(Incident::factory()->create([

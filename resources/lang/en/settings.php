@@ -56,6 +56,14 @@ return [
         'general_settings_title' => 'General settings',
         'incident_settings_title' => 'Incident settings',
         'display_settings_title' => 'Display settings',
+        'component_layout' => [
+            'label' => 'Component layout',
+            'helper' => 'Groups shows every component in collapsible groups. List adds search, filters, a status summary and a grid view, and paginates, for status pages with hundreds or thousands of components.',
+            'options' => [
+                'groups' => 'Groups',
+                'list' => 'List with search',
+            ],
+        ],
         'api_settings_title' => 'API settings',
         'mcp_settings_title' => 'MCP server settings',
     ],
@@ -120,6 +128,19 @@ return [
     'manage_theme' => [
         'app_banner_label' => 'Banner image',
         'app_banner_helper' => 'An image displayed at the top of the status page.',
+        'favicon_label' => 'Favicon',
+        'favicon_helper' => 'The icon shown in browser tabs on the status page and the dashboard. PNG or ICO, square, at least 32×32 pixels. With dynamic favicons on, the status icon replaces it during incidents and maintenance.',
+        'theme_mode' => [
+            'heading' => 'Appearance',
+            'description' => 'Choose how the status page appears to visitors.',
+            'label' => 'Theme',
+            'helper' => 'Automatic follows each visitor\'s device preference and lets them pick a theme. Light and dark force the status page into that theme.',
+            'modes' => [
+                'auto' => 'Automatic (System)',
+                'light' => 'Light',
+                'dark' => 'Dark',
+            ],
+        ],
         'status_page_accent' => [
             'heading' => 'Status page accent',
             'description' => 'Customize the accent color of your status page. Cachet can automatically select a matching base color.',

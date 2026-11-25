@@ -23,7 +23,7 @@ function useAppTimezone(string $timezone): void
 it('normalizes incident occurred_at with a UTC designator to the app timezone', function () {
     useAppTimezone('Europe/Berlin');
 
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $response = postJson('/status/api/incidents', [
         'name' => 'Incident',
@@ -40,7 +40,7 @@ it('normalizes incident occurred_at with a UTC designator to the app timezone', 
 it('normalizes incident occurred_at with an explicit offset to the app timezone', function () {
     useAppTimezone('Europe/Berlin');
 
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $response = postJson('/status/api/incidents', [
         'name' => 'Incident',
@@ -57,7 +57,7 @@ it('normalizes incident occurred_at with an explicit offset to the app timezone'
 it('interprets offset-less incident occurred_at as app timezone wall clock', function () {
     useAppTimezone('Europe/Berlin');
 
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $response = postJson('/status/api/incidents', [
         'name' => 'Incident',
@@ -74,7 +74,7 @@ it('interprets offset-less incident occurred_at as app timezone wall clock', fun
 it('normalizes incident published_at with an explicit offset to the app timezone', function () {
     useAppTimezone('Europe/Berlin');
 
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $response = postJson('/status/api/incidents', [
         'name' => 'Incident',
@@ -90,7 +90,7 @@ it('normalizes incident published_at with an explicit offset to the app timezone
 it('normalizes occurred_at on incident update', function () {
     useAppTimezone('Europe/Berlin');
 
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $incident = Incident::factory()->create();
 
@@ -108,7 +108,7 @@ it('normalizes occurred_at on incident update', function () {
 it('normalizes schedule scheduled_at and completed_at with explicit offsets to the app timezone', function () {
     useAppTimezone('Europe/Berlin');
 
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $response = postJson('/status/api/schedules', [
         'name' => 'Maintenance',
@@ -129,7 +129,7 @@ it('normalizes schedule scheduled_at and completed_at with explicit offsets to t
 it('normalizes completed_at with an explicit offset on schedule update', function () {
     useAppTimezone('Europe/Berlin');
 
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     $schedule = Schedule::factory()->create();
 
@@ -147,7 +147,7 @@ it('normalizes completed_at with an explicit offset on schedule update', functio
 it('normalizes an ISO 8601 metric point timestamp with an explicit offset to the app timezone', function () {
     useAppTimezone('Europe/Berlin');
 
-    Sanctum::actingAs(User::factory()->create(), ['metric-points.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metric-points.manage']);
 
     $metric = Metric::factory()->create();
 
@@ -164,7 +164,7 @@ it('normalizes an ISO 8601 metric point timestamp with an explicit offset to the
 });
 
 it('normalizes incident occurred_at with an explicit offset when the app timezone is UTC', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $response = postJson('/status/api/incidents', [
         'name' => 'Incident',

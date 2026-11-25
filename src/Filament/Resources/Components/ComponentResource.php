@@ -6,11 +6,13 @@ use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Filament\Resources\Components\Pages\CreateComponent;
 use Cachet\Filament\Resources\Components\Pages\EditComponent;
 use Cachet\Filament\Resources\Components\Pages\ListComponents;
+use Cachet\Filament\Resources\Components\Pages\ViewComponent;
 use Cachet\Filament\Resources\Components\RelationManagers\ChecksRelationManager;
 use Cachet\Models\Component;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
@@ -22,7 +24,10 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ComponentResource extends Resource
 {
@@ -141,9 +146,26 @@ class ComponentResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->label(__('cachet::component.list.headers.status'))
+                    ->options(ComponentStatusEnum::class)
+                    ->multiple(),
+                SelectFilter::make('group')
+                    ->label(__('cachet::component.list.headers.group'))
+                    ->relationship('group', 'name')
+                    ->searchable(),
+                SelectFilter::make('tags')
+                    ->label(__('cachet::component.list.filters.tags'))
+                    ->relationship('tags', 'name')
+                    ->searchable()
+                    ->multiple(),
+                TernaryFilter::make('enabled')
+                    ->label(__('cachet::component.list.headers.enabled')),
             ])
+            ->paginated([10, 25, 50, 100])
             ->recordActions([
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -170,6 +192,7 @@ class ComponentResource extends Resource
             'index' => ListComponents::route('/'),
             'create' => CreateComponent::route('/create'),
             'edit' => EditComponent::route('/{record}/edit'),
+            'view' => ViewComponent::route('/{record}'),
         ];
     }
 
