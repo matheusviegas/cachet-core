@@ -254,6 +254,9 @@ class CachetCoreServiceProvider extends ServiceProvider
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'cachet');
 
+        // Translates Laravel's own strings, such as the verification email.
+        $this->loadJsonTranslationsFrom(__DIR__.'/../resources/lang');
+
         $this->configureRateLimiting();
         $this->registerRoutes();
     }
