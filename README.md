@@ -107,9 +107,17 @@ Changes on top of upstream [`cachethq/core@8ae3e2c`](https://github.com/cachethq
 - **Status page theme mode** (`3e564ecf`, based on [#479](https://github.com/cachethq/core/pull/479), closes [#68](https://github.com/cachethq/core/issues/68)). Automatic, light or dark, with a visitor toggle in automatic mode.
 - **Component statuses on incident updates** (`cce87b9e`, `98687d76` by Mitul Patel, [#481](https://github.com/cachethq/core/pull/481), closes [#194](https://github.com/cachethq/core/issues/194)). Recording an update can change the status of the affected components, from the dashboard and the API.
 - **Dashboard language in the profile** (`2243f7ab`). Every user can choose the dashboard language, or the system default, which follows the browser.
-- **Toasts for dashboard actions** (`b28d10e8`). Verifying a subscriber, completing a schedule, sending a user's verification email, granting or revoking admin access, updating a webhook secret and changing a status in the components widget now show a success toast.
+- **Toasts for dashboard actions** (`b28d10e8`). Verifying a subscriber, completing a schedule, sending a user's verification email, updating a webhook secret and changing a status in the components widget now show a success toast.
 - **Custom favicon** (`a1e352fc`). Manage Theme accepts a PNG or ICO favicon for the status page and the dashboard. With dynamic favicons on, the status icon replaces it during incidents and maintenance.
 - **Affected components as links** (`6efae483`). Incidents and maintenance on the status page list their affected components as pills linking to each component page.
+- **Permission groups** (`8ae68408`). Replaces the admin flag. Users belong to groups, and they can do the union of what their groups allow.
+  - Each resource has view, manage and delete permissions. Settings and the user's own API keys have one permission each. Managing or deleting a resource also allows viewing it.
+  - The group form lists the actions as checkboxes, like the API key form.
+  - Screens, dashboard widgets and actions are hidden from users who cannot view them. Users who can view but not edit get read-only pages.
+  - The *Administrators* and *Read only* groups always exist, are translated, and follow the permission list. Existing admins join *Administrators* and everyone else joins *Read only*.
+  - API tokens and MCP sessions never exceed the permissions of their owner's groups, including tokens created before this change.
+  - Nobody can create a group, assign a group or change a user that holds more permissions than they have.
+  - Breaking: the `users.is_admin` column and `CachetUser::isAdmin()` are removed. A custom user model must implement `CachetUser` with the `HasGroups` trait.
 
 ### Bug fixes
 
