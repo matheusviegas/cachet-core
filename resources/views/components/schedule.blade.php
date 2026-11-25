@@ -19,9 +19,26 @@
                         </a>
                     </h3>
                 @endif
-                <span data-slot="timestamp" class="text-xs text-zinc-500 dark:text-zinc-400">
-                    <x-cachet::timestamp :timestamp="$schedule->scheduled_at" />
-                </span>
+                {{-- The maintenance window: its length, when it starts and when it is expected to end. --}}
+                <div data-slot="window" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    @if ($duration = $schedule->formattedDuration())
+                        <x-filament::badge data-slot="duration" color="gray" icon="heroicon-m-clock" size="sm" :title="__('cachet::schedule.window.duration')">
+                            {{ $duration }}
+                        </x-filament::badge>
+                    @endif
+
+                    <span data-slot="timestamp">
+                        {{ __('cachet::schedule.window.starts_at') }}:
+                        <x-cachet::timestamp :timestamp="$schedule->scheduled_at" />
+                    </span>
+
+                    @if ($schedule->completed_at)
+                        <span data-slot="ends-at">
+                            {{ $schedule->status === \Cachet\Enums\ScheduleStatusEnum::complete ? __('cachet::schedule.window.ended_at') : __('cachet::schedule.window.expected_end') }}:
+                            <x-cachet::timestamp :timestamp="$schedule->completed_at" />
+                        </span>
+                    @endif
+                </div>
             </div>
 
             <div data-slot="status" class="flex justify-start sm:justify-end">

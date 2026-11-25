@@ -110,6 +110,7 @@ Changes on top of upstream [`cachethq/core@8ae3e2c`](https://github.com/cachethq
 - **Toasts for dashboard actions** (`b28d10e8`). Verifying a subscriber, completing a schedule, sending a user's verification email, updating a webhook secret and changing a status in the components widget now show a success toast.
 - **Custom favicon** (`a1e352fc`). Manage Theme accepts a PNG or ICO favicon for the status page and the dashboard. With dynamic favicons on, the status icon replaces it during incidents and maintenance.
 - **Affected components as links** (`6efae483`). Incidents and maintenance on the status page list their affected components as pills linking to each component page.
+- **Maintenance window on the status page**. Each maintenance shows its length as a badge ("2 dias, 1 hora e 20 minutos"), its start and its expected end, or its end once complete.
 - **Permission groups** (`8ae68408`). Replaces the admin flag. Users belong to groups, and they can do the union of what their groups allow.
   - Each resource has view, manage and delete permissions. Settings and the user's own API keys have one permission each. Managing or deleting a resource also allows viewing it.
   - The group form lists the actions as checkboxes, like the API key form.

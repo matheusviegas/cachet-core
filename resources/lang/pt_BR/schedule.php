@@ -60,5 +60,11 @@ return [
         'in_progress' => 'Em Andamento',
         'complete' => 'Concluído',
     ],
+    'window' => [
+        'duration' => 'Duração',
+        'starts_at' => 'Início',
+        'expected_end' => 'Previsão de término',
+        'ended_at' => 'Término',
+    ],
     'planned_maintenance_header' => 'Manutenção Planejada',
 ];

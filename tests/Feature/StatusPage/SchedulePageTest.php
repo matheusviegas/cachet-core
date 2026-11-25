@@ -94,3 +94,41 @@ it('renders stable maintenance page attributes', function () {
         ->assertSee('data-slot="main"', escape: false)
         ->assertSee('data-slot="message"', escape: false);
 });
+
+it('shows the window duration with its start and expected end', function () {
+    $schedule = Schedule::factory()->create([
+        'scheduled_at' => now()->addDay(),
+        'completed_at' => now()->addDay()->addHours(49)->addMinutes(20),
+    ]);
+
+    get(route('cachet.status-page.schedule', ['schedule' => $schedule]))
+        ->assertOk()
+        ->assertSeeInOrder([
+            'data-slot="duration"',
+            '2 days, 1 hour and 20 minutes',
+            'Start',
+            $schedule->scheduled_at->toW3cString(),
+            'Expected end',
+            $schedule->completed_at->toW3cString(),
+        ], escape: false);
+});
+
+it('labels the end of a finished window as the end', function () {
+    $schedule = Schedule::factory()->completed()->create();
+
+    get(route('cachet.status-page.schedule', ['schedule' => $schedule]))
+        ->assertOk()
+        ->assertSee('15 minutes')
+        ->assertSee('Ended')
+        ->assertDontSee('Expected end');
+});
+
+it('omits the duration and end when the window has no end', function () {
+    $schedule = Schedule::factory()->inProgress()->create();
+
+    get(route('cachet.status-page.schedule', ['schedule' => $schedule]))
+        ->assertOk()
+        ->assertSee('Start')
+        ->assertDontSee('data-slot="duration"', escape: false)
+        ->assertDontSee('Expected end');
+});
