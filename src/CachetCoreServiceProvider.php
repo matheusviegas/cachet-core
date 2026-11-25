@@ -63,6 +63,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 use Laravel\Mcp\Facades\Mcp;
 use Spatie\LaravelSettings\Settings;
 use Spatie\LaravelSettings\SettingsContainer;
@@ -368,7 +369,9 @@ class CachetCoreServiceProvider extends ServiceProvider
      */
     private function registerBladeComponents(): void
     {
-        view()->share('appSettings', app(AppSettings::class));
+        // Shared lazily: resolving the settings reads the cache store, which may
+        // not exist yet while commands such as migrate boot the app.
+        view()->composer('*', fn (View $view) => $view->with('appSettings', app(AppSettings::class)));
         view()->composer('cachet::mail.*', MailThemeComposer::class);
         Blade::componentNamespace('Cachet\\View\\Components', 'cachet');
 

@@ -32,3 +32,11 @@ it('does not read settings from the database for every component', function () {
 
     expect($many)->toBeLessThanOrEqual($few);
 });
+
+it('does not load settings while booting', function () {
+    // Commands such as package:discover and migrate boot the app before the
+    // database or the cache table exists, so booting must not read settings.
+    $app = $this->createApplication();
+
+    expect($app->resolved(AppSettings::class))->toBeFalse();
+});

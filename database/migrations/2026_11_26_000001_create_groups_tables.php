@@ -2,6 +2,7 @@
 
 use Cachet\Enums\DefaultGroupEnum;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -60,8 +61,15 @@ return new class extends Migration
             return;
         }
 
-        $this->addMembers($administratorsId, true, $now);
-        $this->addMembers($readOnlyId, false, $now);
+        // The cachethq/cachet app leaves is_admin out of User::$fillable, so its
+        // cachet:make:user never created an admin. Without one, the first user
+        // becomes the administrator so someone can still manage users and groups.
+        $isAdministrator = DB::table('users')->where('is_admin', true)->exists()
+            ? fn (Builder $query): Builder => $query->where('is_admin', true)
+            : fn (Builder $query): Builder => $query->where('id', DB::table('users')->min('id'));
+
+        $this->addMembers($administratorsId, $now, $isAdministrator);
+        $this->addMembers($readOnlyId, $now, fn (Builder $query): Builder => $query->whereNot($isAdministrator));
 
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('is_admin');
@@ -89,13 +97,15 @@ return new class extends Migration
     }
 
     /**
-     * Add every user with the given is_admin value to the group.
+     * Add every user matching the scope to the group.
+     *
+     * @param  Closure(Builder): Builder  $scope
      */
-    private function addMembers(int $groupId, bool $isAdmin, DateTimeInterface $now): void
+    private function addMembers(int $groupId, DateTimeInterface $now, Closure $scope): void
     {
         DB::table('users')
             ->select('id')
-            ->where('is_admin', $isAdmin)
+            ->where($scope)
             ->chunkById(500, fn ($users) => DB::table('group_user')->insert($users
                 ->map(fn (object $user): array => [
                     'group_id' => $groupId,
