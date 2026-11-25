@@ -31,6 +31,26 @@ it('replaces the admin flag with the default groups', function () {
         ->and($keysOf('staff@example.com'))->toBe([DefaultGroupEnum::read_only]);
 });
 
+it('makes the first user an administrator when nobody was one', function () {
+    groupsMigration()->down();
+
+    // The cachethq/cachet app leaves is_admin out of User::$fillable, so
+    // cachet:make:user --admin never created an administrator there.
+    $now = now();
+    DB::table('users')->insert([
+        ['name' => 'First', 'email' => 'first@example.com', 'password' => 'x', 'is_admin' => false, 'created_at' => $now, 'updated_at' => $now],
+        ['name' => 'Second', 'email' => 'second@example.com', 'password' => 'x', 'is_admin' => false, 'created_at' => $now, 'updated_at' => $now],
+    ]);
+
+    groupsMigration()->up();
+
+    $keysOf = fn (string $email): array => User::query()->where('email', $email)->sole()
+        ->groups->map(fn (Group $group): ?DefaultGroupEnum => $group->key)->all();
+
+    expect($keysOf('first@example.com'))->toBe([DefaultGroupEnum::administrators])
+        ->and($keysOf('second@example.com'))->toBe([DefaultGroupEnum::read_only]);
+});
+
 it('restores the admin flag when rolled back', function () {
     $admin = User::factory()->administrator()->create();
     $staff = User::factory()->create();
