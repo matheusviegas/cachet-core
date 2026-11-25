@@ -182,7 +182,12 @@ class ScheduleResource extends Resource
                             ->required(),
                     ])
                     ->color('success')
-                    ->action(fn (Schedule $record, array $data) => $record->update(['completed_at' => $data['completed_at']])),
+                    ->action(function (Action $action, Schedule $record, array $data): void {
+                        $record->update(['completed_at' => $data['completed_at']]);
+
+                        $action->success();
+                    })
+                    ->successNotificationTitle(fn (Schedule $record): string => __('cachet::schedule.list.actions.complete_success', ['name' => $record->name])),
                 EditAction::make(),
             ])
             ->toolbarActions([

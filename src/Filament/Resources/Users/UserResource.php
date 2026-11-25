@@ -14,6 +14,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -134,7 +135,11 @@ class UserResource extends Resource
 
                 ToggleColumn::make('is_admin')
                     ->disabled(fn (User $record) => auth()->user()->is($record))
-                    ->label(__('cachet::user.list.headers.is_admin')),
+                    ->label(__('cachet::user.list.headers.is_admin'))
+                    ->afterStateUpdated(fn (User $record, bool $state) => Notification::make()
+                        ->title(__($state ? 'cachet::user.list.actions.is_admin_granted' : 'cachet::user.list.actions.is_admin_revoked', ['name' => $record->name]))
+                        ->success()
+                        ->send()),
 
                 TextColumn::make('email_verified_at')
                     ->label(__('cachet::user.list.headers.email_verified_at'))
@@ -149,9 +154,12 @@ class UserResource extends Resource
                     ->label(__('cachet::user.list.actions.verify_email'))
                     ->icon(Heroicon::OutlinedCheckBadge)
                     ->disabled(fn (User $record): bool => $record->hasVerifiedEmail())
-                    ->action(function (User $record): void {
+                    ->action(function (Action $action, User $record): void {
                         $record->sendEmailVerificationNotification();
-                    }),
+
+                        $action->success();
+                    })
+                    ->successNotificationTitle(fn (User $record): string => __('cachet::user.list.actions.verify_email_success', ['email' => $record->email])),
                 Action::make('reset-two-factor')
                     ->label(__('cachet::user.list.actions.reset_two_factor'))
                     ->icon(Heroicon::OutlinedShieldExclamation)

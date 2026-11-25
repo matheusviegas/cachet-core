@@ -24,6 +24,7 @@ return [
         'actions' => [
             'record_update' => 'Registrar Atualização',
             'complete' => 'Concluir Manutenção',
+            'complete_success' => ':name foi marcada como concluída.',
         ],
     ],
     'form' => [

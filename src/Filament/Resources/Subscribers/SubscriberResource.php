@@ -96,7 +96,12 @@ class SubscriberResource extends Resource
                 Action::make('verify')
                     ->label(__('cachet::subscriber.list.actions.verify_label'))
                     ->color('warning')
-                    ->action(fn (Subscriber $record) => $record->verify())
+                    ->action(function (Action $action, Subscriber $record): void {
+                        $record->verify();
+
+                        $action->success();
+                    })
+                    ->successNotificationTitle(fn (Subscriber $record): string => __('cachet::subscriber.list.actions.verify_success', ['email' => $record->email]))
                     ->requiresConfirmation()
                     ->hidden(fn (Subscriber $record): bool => $record->hasVerifiedEmail()),
                 Action::make('resend-verification')

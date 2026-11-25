@@ -17,6 +17,7 @@ return [
         'events_label' => 'Eventos',
         'edit_secret_label' => 'Editar segredo',
         'update_secret_label' => 'Atualizar segredo',
+        'secret_updated' => 'Segredo atualizado.',
     ],
     'attempts' => [
         'heading' => 'Tentativas',

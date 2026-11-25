@@ -14,6 +14,9 @@ return [
         ],
         'actions' => [
             'verify_email' => 'Verificar E-mail',
+            'verify_email_success' => 'Um e-mail de verificação foi enviado para :email.',
+            'is_admin_granted' => ':name agora é administrador.',
+            'is_admin_revoked' => ':name não é mais administrador.',
             'reset_two_factor' => 'Redefinir autenticação em dois fatores',
             'reset_two_factor_confirmation' => 'Isso removerá a configuração da autenticação em dois fatores e os códigos de recuperação do usuário. Ele poderá entrar apenas com a senha até configurá-la novamente.',
             'reset_two_factor_success' => 'Autenticação em dois fatores redefinida.',

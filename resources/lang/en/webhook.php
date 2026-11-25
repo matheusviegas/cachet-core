@@ -16,6 +16,7 @@ return [
         'events_label' => 'Events',
         'edit_secret_label' => 'Edit secret',
         'update_secret_label' => 'Update secret',
+        'secret_updated' => 'Secret updated.',
     ],
     'attempts' => [
         'heading' => 'Attempts',

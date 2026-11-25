@@ -24,6 +24,7 @@ return [
         'actions' => [
             'record_update' => 'Record update',
             'complete' => 'Complete maintenance',
+            'complete_success' => ':name has been marked as complete.',
         ],
     ],
     'form' => [

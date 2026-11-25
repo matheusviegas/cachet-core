@@ -4,6 +4,7 @@ return [
     'components' => [
         'effective_status' => 'Status atual',
         'baseline_status' => 'Status base',
+        'status_updated' => 'Status de :component alterado para :status.',
     ],
     'system_health' => [
         'empty' => 'Nenhum componente foi configurado ainda.',

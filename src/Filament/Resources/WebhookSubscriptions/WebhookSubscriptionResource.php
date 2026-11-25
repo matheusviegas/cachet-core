@@ -86,11 +86,14 @@ class WebhookSubscriptionResource extends Resource
                             ->schema([
                                 self::secretField(),
                             ])
-                            ->action(function (array $data, WebhookSubscription $webhookSubscription) {
+                            ->action(function (Action $action, array $data, WebhookSubscription $webhookSubscription): void {
                                 $webhookSubscription->update($data);
+
+                                $action->success();
                             })
+                            ->successNotificationTitle(__('cachet::webhook.form.secret_updated'))
                             ->modalSubmitActionLabel(__('cachet::webhook.form.update_secret_label')),
-                    ])->visibleOn(['edit']),
+                    ])->key('secret_actions')->visibleOn(['edit']),
 
                     TextInput::make('description')
                         ->label(__('cachet::webhook.form.description_label'))

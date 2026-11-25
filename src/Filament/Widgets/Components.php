@@ -8,6 +8,7 @@ use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\ComponentStatusSourceEnum;
 use Cachet\Filament\Widgets\Concerns\PollsFromAppSettings;
 use Cachet\Models\Component;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -58,6 +59,11 @@ class Components extends TableWidget
                         $status = $state instanceof ComponentStatusEnum ? $state : ComponentStatusEnum::from((int) $state);
 
                         app(ChangeComponentStatus::class)->handle($record, $status, ComponentStatusSourceEnum::Manual, auth()->user());
+
+                        Notification::make()
+                            ->title(__('cachet::dashboard.components.status_updated', ['component' => $record->name, 'status' => $status->getLabel()]))
+                            ->success()
+                            ->send();
 
                         return $status;
                     }),
