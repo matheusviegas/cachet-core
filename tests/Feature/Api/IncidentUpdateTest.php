@@ -177,7 +177,7 @@ it('cannot create an incident update without the token ability', function () {
 });
 
 it('can create an incident update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incident = Incident::factory()->create();
 
@@ -194,7 +194,7 @@ it('can create an incident update', function () {
 });
 
 it('can create an incident update that moves its component statuses', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incident = Incident::factory()->create();
     $component = Component::factory()->create();
@@ -217,7 +217,7 @@ it('can create an incident update that moves its component statuses', function (
 });
 
 it('rejects an incident update with an unknown component', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incident = Incident::factory()->create();
 
@@ -233,7 +233,7 @@ it('rejects an incident update with an unknown component', function () {
 });
 
 it('rejects an incident update that lists a component twice', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incident = Incident::factory()->create();
     $component = Component::factory()->create();
@@ -254,7 +254,7 @@ it('rejects an incident update that lists a component twice', function () {
 });
 
 it('rejects an incident update with an unknown component status', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incident = Incident::factory()->create();
     $component = Component::factory()->create();
@@ -296,7 +296,7 @@ it('cannot update an incident update without the token ability', function () {
 });
 
 it('can update an incident update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.manage']);
 
     $incidentUpdate = Update::factory()->forIncident()->create();
 
@@ -333,7 +333,7 @@ it('cannot delete an incident update without the token ability', function () {
 });
 
 it('can delete an incident update', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-updates.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-updates.delete']);
 
     $incidentUpdate = Update::factory()->forIncident()->create();
 
@@ -346,7 +346,7 @@ it('can delete an incident update', function () {
 });
 
 it('cannot delete an incident update from another incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.delete']);
 
     $incidentUpdate = Update::factory()->forUpdateable()->create();
 

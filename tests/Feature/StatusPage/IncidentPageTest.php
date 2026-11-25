@@ -8,7 +8,7 @@ use Workbench\App\User;
 
 it('never exposes a public incident private note to status page or API viewers', function (bool $authenticated) {
     if ($authenticated) {
-        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        $this->actingAs(User::factory()->administrator()->create());
     }
 
     $incident = Incident::factory()->create([

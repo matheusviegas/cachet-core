@@ -33,13 +33,13 @@
                                     <a href="{{ route('cachet.status-page.incident', $incident) }}" class="transition hover:text-accent-content">{{ $incident->name }}</a>
                                 </h3>
                             @endif
-                            @auth
+                            @can('update', $incident)
                                 <a href="{{ $incident->filamentDashboardEditUrl() }}"
                                    class="text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
                                    title="{{ __('cachet::incident.edit_button_title') }}">
                                     <x-heroicon-m-pencil-square class="size-4" />
                                 </a>
-                            @endauth
+                            @endcan
                         </div>
                         <span data-slot="timestamp" class="text-xs text-zinc-500 dark:text-zinc-400">
                             <x-cachet::timestamp :timestamp="$incident->timestamp" />

@@ -7,12 +7,14 @@ use Cachet\Enums\WebhookEventEnum;
 use Cachet\Filament\Resources\WebhookSubscriptions\Pages\CreateWebhookSubscription;
 use Cachet\Filament\Resources\WebhookSubscriptions\Pages\EditWebhookSubscription;
 use Cachet\Filament\Resources\WebhookSubscriptions\Pages\ListWebhookSubscriptions;
+use Cachet\Filament\Resources\WebhookSubscriptions\Pages\ViewWebhookSubscription;
 use Cachet\Models\WebhookSubscription;
 use Cachet\View\Htmlable\TextWithLink;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -23,6 +25,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class WebhookSubscriptionResource extends Resource
 {
@@ -130,6 +133,8 @@ class WebhookSubscriptionResource extends Resource
                 //
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -152,6 +157,7 @@ class WebhookSubscriptionResource extends Resource
             'index' => ListWebhookSubscriptions::route('/'),
             'create' => CreateWebhookSubscription::route('/create'),
             'edit' => EditWebhookSubscription::route('/{record}/edit'),
+            'view' => ViewWebhookSubscription::route('/{record}'),
         ];
     }
 

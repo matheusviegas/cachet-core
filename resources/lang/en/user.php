@@ -10,13 +10,11 @@ return [
             'name' => 'Name',
             'email' => 'Email address',
             'email_verified_at' => 'Email verified at',
-            'is_admin' => 'Admin',
+            'groups' => 'Groups',
         ],
         'actions' => [
             'verify_email' => 'Verify email',
             'verify_email_success' => 'A verification email has been sent to :email.',
-            'is_admin_granted' => ':name is now an administrator.',
-            'is_admin_revoked' => ':name is no longer an administrator.',
             'reset_two_factor' => 'Reset two-factor authentication',
             'reset_two_factor_confirmation' => 'This will remove the user\'s two-factor authentication setup and recovery codes. They will be able to sign in with only their password until they set it up again.',
             'reset_two_factor_success' => 'Two-factor authentication reset.',
@@ -30,6 +28,7 @@ return [
         'preferred_locale' => 'Preferred locale',
         'preferred_locale_system_default' => 'System default',
         'preferred_locale_helper' => 'The language of the dashboard. System default follows your browser language.',
-        'is_admin_label' => 'Admin',
+        'groups_label' => 'Groups',
+        'groups_helper' => 'The user can do everything their groups allow.',
     ],
 ];

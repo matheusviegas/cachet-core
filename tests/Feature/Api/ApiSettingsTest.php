@@ -27,7 +27,7 @@ it('responds not found when the api is disabled, even for authenticated users', 
     $settings->api_protected = true;
     $settings->save();
 
-    Sanctum::actingAs(User::factory()->create(), ['*']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['*']);
 
     getJson('/status/api/ping')
         ->assertNotFound();
@@ -47,7 +47,7 @@ it('allows authenticated users to read the api when the api is protected', funct
     $settings->api_protected = true;
     $settings->save();
 
-    Sanctum::actingAs(User::factory()->create(), ['*']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['*']);
 
     getJson('/status/api/ping')
         ->assertOk();
@@ -58,7 +58,7 @@ it('still guards write endpoints by token abilities when the api is protected', 
     $settings->api_protected = true;
     $settings->save();
 
-    Sanctum::actingAs(User::factory()->create(), ['components.view']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['components.view']);
 
     postJson('/status/api/components', [
         'name' => 'New Component',

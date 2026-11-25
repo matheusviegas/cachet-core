@@ -5,8 +5,14 @@ namespace Tests\Feature\Filament\Widgets;
 use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Filament\Widgets\OpenIncidents;
 use Cachet\Models\Incident;
+use Cachet\Models\User;
 
+use function Pest\Laravel\actingAs;
 use function Pest\Livewire\livewire;
+
+beforeEach(function () {
+    actingAs(User::factory()->administrator()->create());
+});
 
 it('open incidents smoke test', function () {
     $component = livewire(OpenIncidents::class);

@@ -184,7 +184,7 @@ it('can filter incidents by meta', function () {
 });
 
 it('can create an incident with meta', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $response = postJson('/status/api/incidents', [
         'name' => 'Test',
@@ -284,8 +284,18 @@ it('cannot create an incident without the token ability', function () {
     $response->assertForbidden();
 });
 
+it('cannot create an incident when the token owner lacks the permission', function () {
+    Sanctum::actingAs(User::factory()->withPermissions(['incidents.view'])->create(), ['incidents.manage']);
+
+    postJson('/status/api/incidents', [
+        'name' => 'New Incident Occurred',
+        'message' => 'Something went wrong.',
+        'status' => 2,
+    ])->assertForbidden();
+});
+
 it('can create an incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $response = postJson('/status/api/incidents', $payload = [
         'name' => 'New Incident Occurred',
@@ -308,7 +318,7 @@ it('can create an incident', function () {
 });
 
 it('can create an incident with components', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     [$componentA, $componentB] = Component::factory(2)->create();
 
@@ -359,7 +369,7 @@ it('can create an incident with components', function () {
 });
 
 it('can create an incident with a legacy component payload', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $component = Component::factory()->create();
 
@@ -385,7 +395,7 @@ it('can create an incident with a legacy component payload', function () {
 });
 
 it('cannot create an incident with a template that does not exist', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $response = postJson('/status/api/incidents', [
         'name' => 'New Incident Occurred',
@@ -398,7 +408,7 @@ it('cannot create an incident with a template that does not exist', function () 
 });
 
 it('can create an incident with a template', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $incidentTemplate = IncidentTemplate::factory()->twig()->create();
 
@@ -423,7 +433,7 @@ it('can create an incident with a template', function () {
 });
 
 it('cannot create an incident with bad data', function (array $payload) {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $response = postJson('/status/api/incidents', $payload);
 
@@ -462,7 +472,7 @@ it('cannot update an incident without the token ability', function () {
 });
 
 it('can update an incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $incident = Incident::factory()->create();
 
@@ -476,7 +486,7 @@ it('can update an incident', function () {
 });
 
 it('can update an incident while passing null data', function (array $payload) {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $incident = Incident::factory()->create();
 
@@ -497,7 +507,7 @@ it('can update an incident while passing null data', function (array $payload) {
 ]);
 
 it('cannot update an incident with bad data', function (array $payload) {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $incident = Incident::factory()->create();
 
@@ -529,7 +539,7 @@ it('cannot delete an incident without the token ability', function () {
 });
 
 it('can delete an incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.delete']);
 
     $incident = Incident::factory()->create();
 
@@ -621,7 +631,7 @@ it('lists authenticated incidents to callers presenting a bearer token', functio
 });
 
 it('rejects a duplicate component in the same incident', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $component = Component::factory()->create();
 

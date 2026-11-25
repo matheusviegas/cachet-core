@@ -4,6 +4,7 @@ namespace Cachet\Database\Seeders;
 
 use Cachet\Enums\ComponentGroupVisibilityEnum;
 use Cachet\Enums\ComponentStatusEnum;
+use Cachet\Enums\DefaultGroupEnum;
 use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Enums\IncidentTemplateEngineEnum;
 use Cachet\Enums\MetricTypeEnum;
@@ -11,6 +12,7 @@ use Cachet\Enums\MetricViewEnum;
 use Cachet\Enums\ResourceVisibilityEnum;
 use Cachet\Models\Component;
 use Cachet\Models\ComponentGroup;
+use Cachet\Models\Group;
 use Cachet\Models\Incident;
 use Cachet\Models\IncidentTemplate;
 use Cachet\Models\Metric;
@@ -32,6 +34,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         DB::table('api_keys')->truncate();
+        DB::table('group_user')->truncate();
         DB::table('users')->truncate();
         DB::table('incidents')->truncate();
         DB::table('incident_components')->truncate();
@@ -54,8 +57,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@test.com',
             'password' => bcrypt('test123'),
             'email_verified_at' => now(),
-            'is_admin' => true,
         ]);
+
+        Group::findDefault(DefaultGroupEnum::administrators)?->users()->attach($user);
 
         /** @phpstan-ignore-next-line  argument.type */
         $documentationMaintenance = tap(Schedule::create([

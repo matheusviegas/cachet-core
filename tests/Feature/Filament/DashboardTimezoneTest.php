@@ -15,7 +15,7 @@ beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('cachet'));
     Filament::bootCurrentPanel();
 
-    actingAs(User::factory()->create(['is_admin' => true]));
+    actingAs(User::factory()->administrator()->create());
 });
 
 it('renders dashboard date times in the configured display timezone', function () {

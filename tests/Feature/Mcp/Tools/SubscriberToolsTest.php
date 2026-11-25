@@ -31,7 +31,7 @@ it('hides the subscribers list from tokens without the ability', function () {
 });
 
 it('lists subscribers with the ability', function () {
-    Sanctum::actingAs(User::factory()->create(), ['subscribers.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['subscribers.manage']);
 
     $components = Component::factory(2)->create();
     $components->each->syncTags(['Public API']);
@@ -52,7 +52,7 @@ it('lists subscribers with the ability', function () {
 it('creates a subscriber and sends a verification email', function () {
     Notification::fake();
 
-    Sanctum::actingAs(User::factory()->create(), ['subscribers.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['subscribers.manage']);
 
     CachetServer::tool(CreateSubscriber::class, ['email' => 'james@example.com'])
         ->assertOk()
@@ -68,7 +68,7 @@ it('creates a subscriber and sends a verification email', function () {
 it('creates a verified subscriber without sending a verification email', function () {
     Notification::fake();
 
-    Sanctum::actingAs(User::factory()->create(), ['subscribers.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['subscribers.manage']);
 
     CachetServer::tool(CreateSubscriber::class, [
         'email' => 'james@example.com',
@@ -79,14 +79,14 @@ it('creates a verified subscriber without sending a verification email', functio
 });
 
 it('validates the subscriber email', function () {
-    Sanctum::actingAs(User::factory()->create(), ['subscribers.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['subscribers.manage']);
 
     CachetServer::tool(CreateSubscriber::class, ['email' => 'not-an-email'])
         ->assertHasErrors();
 });
 
 it('updates a subscriber', function () {
-    Sanctum::actingAs(User::factory()->create(), ['subscribers.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['subscribers.manage']);
 
     $subscriber = Subscriber::factory()->create(['email' => 'old@example.com']);
 
@@ -99,7 +99,7 @@ it('updates a subscriber', function () {
 });
 
 it('unsubscribes a subscriber', function () {
-    Sanctum::actingAs(User::factory()->create(), ['subscribers.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['subscribers.delete']);
 
     $subscriber = Subscriber::factory()->create();
 

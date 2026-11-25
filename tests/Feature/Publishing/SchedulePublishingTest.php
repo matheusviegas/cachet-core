@@ -31,7 +31,7 @@ it('returns 404 from the api for a single unpublished schedule', function () {
 it('hides unpublished schedules from a read-only api token', function () {
     Schedule::factory()->scheduled()->create();
 
-    Sanctum::actingAs(User::factory()->create(), ['schedules.view']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.view']);
 
     getJson('/status/api/schedules')
         ->assertOk()
@@ -42,7 +42,7 @@ it('exposes unpublished schedules to an api token that can manage schedules', fu
     Schedule::factory()->create(['name' => 'Published now']);
     Schedule::factory()->scheduled()->create(['name' => 'Prescheduled']);
 
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     getJson('/status/api/schedules')
         ->assertOk()
@@ -52,7 +52,7 @@ it('exposes unpublished schedules to an api token that can manage schedules', fu
 it('exposes a single unpublished schedule to an api token that can manage schedules', function () {
     $schedule = Schedule::factory()->scheduled()->create();
 
-    Sanctum::actingAs(User::factory()->create(), ['schedules.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['schedules.manage']);
 
     getJson("/status/api/schedules/{$schedule->id}")->assertOk();
 });

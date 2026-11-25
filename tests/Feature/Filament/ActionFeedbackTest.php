@@ -21,7 +21,7 @@ use function Pest\Livewire\livewire;
 beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('cachet'));
 
-    $this->admin = User::factory()->create(['is_admin' => true]);
+    $this->admin = User::factory()->administrator()->create();
     actingAs($this->admin);
 });
 
@@ -43,27 +43,11 @@ it('confirms a schedule was completed', function () {
 
 it('confirms the verification email was sent to a user', function () {
     Notification::fake();
-    $user = User::factory()->unverified()->create(['is_admin' => false]);
+    $user = User::factory()->unverified()->create();
 
     livewire(ListUsers::class)
         ->callAction(TestAction::make('verify-email')->table($user))
         ->assertNotified(__('cachet::user.list.actions.verify_email_success', ['email' => $user->email]));
-});
-
-it('confirms admin access was granted and revoked', function () {
-    $user = User::factory()->create(['name' => 'Ana', 'is_admin' => false]);
-
-    livewire(ListUsers::class)
-        ->call('updateTableColumnState', 'is_admin', (string) $user->getKey(), true)
-        ->assertNotified(__('cachet::user.list.actions.is_admin_granted', ['name' => 'Ana']));
-
-    expect($user->fresh()->is_admin)->toBeTrue();
-
-    livewire(ListUsers::class)
-        ->call('updateTableColumnState', 'is_admin', (string) $user->getKey(), false)
-        ->assertNotified(__('cachet::user.list.actions.is_admin_revoked', ['name' => 'Ana']));
-
-    expect($user->fresh()->is_admin)->toBeFalse();
 });
 
 it('confirms a webhook secret was updated', function () {

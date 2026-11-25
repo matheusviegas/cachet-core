@@ -9,7 +9,6 @@ return [
             'name' => 'Name',
             'email' => 'E-Mail-Adresse',
             'email_verified_at' => 'E-Mail verifiziert am',
-            'is_admin' => 'Administrator',
         ],
         'actions' => [
             'verify_email' => 'E-Mail verifizieren',
@@ -25,6 +24,5 @@ return [
         'password_confirmation_label' => 'Passwort bestätigen',
         'preferred_locale' => 'Bevorzugte Sprache',
         'preferred_locale_system_default' => 'Systemstandard',
-        'is_admin_label' => 'Administrator',
     ],
 ];

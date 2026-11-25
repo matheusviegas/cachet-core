@@ -21,6 +21,14 @@ class ComponentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'components';
 
+    /**
+     * The affected components belong to the owner record, so access to it is enough.
+     */
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        return true;
+    }
+
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return trans_choice('cachet::component.resource_label', 2);

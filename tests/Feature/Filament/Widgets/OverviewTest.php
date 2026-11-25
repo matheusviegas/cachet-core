@@ -8,8 +8,14 @@ use Cachet\Filament\Widgets\Overview;
 use Cachet\Models\Component;
 use Cachet\Models\Incident;
 use Cachet\Models\Subscriber;
+use Cachet\Models\User;
 
+use function Pest\Laravel\actingAs;
 use function Pest\Livewire\livewire;
+
+beforeEach(function () {
+    actingAs(User::factory()->administrator()->create());
+});
 
 it('overview smoke test', function () {
     $component = livewire(Overview::class);

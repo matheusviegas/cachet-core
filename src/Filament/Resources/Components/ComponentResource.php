@@ -6,11 +6,13 @@ use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Filament\Resources\Components\Pages\CreateComponent;
 use Cachet\Filament\Resources\Components\Pages\EditComponent;
 use Cachet\Filament\Resources\Components\Pages\ListComponents;
+use Cachet\Filament\Resources\Components\Pages\ViewComponent;
 use Cachet\Filament\Resources\Components\RelationManagers\ChecksRelationManager;
 use Cachet\Models\Component;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
@@ -25,6 +27,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ComponentResource extends Resource
 {
@@ -161,6 +164,8 @@ class ComponentResource extends Resource
             ])
             ->paginated([10, 25, 50, 100])
             ->recordActions([
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -187,6 +192,7 @@ class ComponentResource extends Resource
             'index' => ListComponents::route('/'),
             'create' => CreateComponent::route('/create'),
             'edit' => EditComponent::route('/{record}/edit'),
+            'view' => ViewComponent::route('/{record}'),
         ];
     }
 

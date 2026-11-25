@@ -9,7 +9,6 @@ return [
             'name' => '이름',
             'email' => '이메일 주소',
             'email_verified_at' => '이메일 인증 시간',
-            'is_admin' => '관리자 여부',
         ],
         'actions' => [
             'verify_email' => '이메일 인증',
@@ -22,6 +21,5 @@ return [
         'password_confirmation_label' => '비밀번호 확인',
         'preferred_locale' => '선호 언어',
         'preferred_locale_system_default' => '시스템 기본값',
-        'is_admin_label' => '관리자',
     ],
 ];

@@ -73,7 +73,7 @@ it('cannot create an incident template without the token ability', function () {
 });
 
 it('can create an incident template', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-templates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-templates.manage']);
 
     $response = postJson('/status/api/incident-templates', [
         'name' => 'New Template',
@@ -94,7 +94,7 @@ it('can create an incident template', function () {
 it('cannot create an incident template with the blade engine when the blade renderer is disabled', function () {
     config()->set('cachet.renderers.blade', false);
 
-    Sanctum::actingAs(User::factory()->create(), ['incident-templates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-templates.manage']);
 
     $response = postJson('/status/api/incident-templates', [
         'name' => 'New Template',
@@ -110,7 +110,7 @@ it('cannot create an incident template with the blade engine when the blade rend
 it('can create an incident template with the blade engine when the blade renderer is enabled', function () {
     config()->set('cachet.renderers.blade', true);
 
-    Sanctum::actingAs(User::factory()->create(), ['incident-templates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-templates.manage']);
 
     $response = postJson('/status/api/incident-templates', [
         'name' => 'New Template',
@@ -145,7 +145,7 @@ it('cannot update an incident template without the token ability', function () {
 });
 
 it('can update an incident template', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-templates.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-templates.manage']);
 
     $incidentTemplate = IncidentTemplate::factory()->create();
 
@@ -178,7 +178,7 @@ it('cannot delete an incident template without the token ability', function () {
 });
 
 it('can delete an incident template', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incident-templates.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incident-templates.delete']);
 
     $incidentTemplate = IncidentTemplate::factory()->create();
 

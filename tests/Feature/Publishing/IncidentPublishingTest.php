@@ -40,7 +40,7 @@ it('returns 404 from the api for a single unpublished incident', function () {
 it('hides unpublished incidents from a read-only api token', function () {
     Incident::factory()->scheduled()->create();
 
-    Sanctum::actingAs(User::factory()->create(), ['incidents.view']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.view']);
 
     getJson('/status/api/incidents')
         ->assertOk()
@@ -51,18 +51,27 @@ it('exposes unpublished incidents to a first-party session on the api', function
     Incident::factory()->scheduled()->create();
 
     // First-party sessions authenticate with a transient token that grants every
-    // ability, so a logged-in staff user is treated as a manager here.
-    actingAs(User::factory()->create())
+    // ability, so the user's groups decide whether they manage incidents.
+    actingAs(User::factory()->withPermissions(['incidents.manage'])->create())
         ->getJson('/status/api/incidents')
         ->assertOk()
         ->assertJsonCount(1, 'data');
+});
+
+it('hides unpublished incidents from a first-party session without the permission', function () {
+    Incident::factory()->scheduled()->create();
+
+    actingAs(User::factory()->withPermissions(['incidents.view'])->create())
+        ->getJson('/status/api/incidents')
+        ->assertOk()
+        ->assertJsonCount(0, 'data');
 });
 
 it('exposes unpublished incidents to an api token that can manage incidents', function () {
     Incident::factory()->create(['name' => 'Published now']);
     Incident::factory()->scheduled()->create(['name' => 'Prescheduled']);
 
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     getJson('/status/api/incidents')
         ->assertOk()
@@ -72,7 +81,7 @@ it('exposes unpublished incidents to an api token that can manage incidents', fu
 it('exposes a single unpublished incident to an api token that can manage incidents', function () {
     $incident = Incident::factory()->scheduled()->create();
 
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     getJson("/status/api/incidents/{$incident->id}")->assertOk();
 });
@@ -102,7 +111,7 @@ it('keeps unpublished incidents out of the timeline', function () {
 });
 
 it('exposes unpublished incidents to the mcp server for dashboard management', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     Incident::factory()->create(['name' => 'Published now']);
     Incident::factory()->scheduled()->create(['name' => 'Prescheduled']);
@@ -113,7 +122,7 @@ it('exposes unpublished incidents to the mcp server for dashboard management', f
 });
 
 it('exposes a single unpublished incident to the mcp server', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.manage']);
 
     $incident = Incident::factory()->scheduled()->create(['name' => 'Prescheduled']);
 
@@ -123,7 +132,7 @@ it('exposes a single unpublished incident to the mcp server', function () {
 });
 
 it('hides unpublished incidents from an mcp caller that cannot manage incidents', function () {
-    Sanctum::actingAs(User::factory()->create(), ['incidents.read']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['incidents.read']);
 
     Incident::factory()->create(['name' => 'Published now']);
     Incident::factory()->scheduled()->create(['name' => 'Prescheduled']);

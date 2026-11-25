@@ -5,7 +5,11 @@ namespace Cachet\Filament\Resources\Updates\RelationManagers;
 use Cachet\Actions\Incident\SyncIncidentStatus;
 use Cachet\Enums\IncidentStatusEnum;
 use Cachet\Filament\Resources\Incidents\Pages\EditIncident;
+use Cachet\Filament\Resources\Users\UserResource;
 use Cachet\Models\Incident;
+use Cachet\Models\Schedule;
+use Cachet\Permissions;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -19,10 +23,21 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class UpdatesRelationManager extends RelationManager
 {
     protected static string $relationship = 'updates';
+
+    /**
+     * Incident and schedule updates have separate permissions.
+     */
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        $resource = $ownerRecord instanceof Schedule ? 'schedule-updates' : 'incident-updates';
+
+        return Permissions::allows("{$resource}.".Permissions::VIEW);
+    }
 
     public function form(Schema $schema): Schema
     {
@@ -40,6 +55,7 @@ class UpdatesRelationManager extends RelationManager
                     ->relationship('user', 'name')
                     ->searchable()
                     ->preload()
+                    ->createOptionAction(fn (Action $action): Action => $action->authorize(fn (): bool => UserResource::canCreate()))
                     ->createOptionForm([
                         TextInput::make('name')
                             ->label(__('cachet::user.form.name_label'))

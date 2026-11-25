@@ -30,7 +30,7 @@ use function Pest\Livewire\livewire;
 beforeEach(function () {
     Filament::setCurrentPanel(Filament::getPanel('cachet'));
 
-    actingAs(User::factory()->create(['is_admin' => true]));
+    actingAs(User::factory()->administrator()->create());
 });
 
 it('counts every open incident in the navigation badge', function () {
@@ -93,7 +93,7 @@ it('shows the notify subscribers toggle when subscriptions are allowed', functio
 });
 
 it('defaults the incident update user to the incident reporter', function () {
-    $reporter = User::factory()->create(['is_admin' => true]);
+    $reporter = User::factory()->administrator()->create();
     $incident = Incident::factory()->create(['user_id' => $reporter->id]);
 
     livewire(EditIncident::class, ['record' => $incident->getKey()])

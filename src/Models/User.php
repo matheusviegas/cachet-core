@@ -3,6 +3,7 @@
 namespace Cachet\Models;
 
 use Cachet\Concerns\CachetUser;
+use Cachet\Concerns\HasGroups;
 use Cachet\Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
@@ -13,6 +14,7 @@ use Filament\Panel;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -24,15 +26,15 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $name
  * @property string $email
  * @property string $password
- * @property bool $is_admin
  * @property string $preferred_locale
  * @property ?string $app_authentication_secret
  * @property ?array $app_authentication_recovery_codes
+ * @property Collection<int, Group> $groups
  */
 class User extends Authenticatable implements CachetUser, FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, MustVerifyEmailTrait, Notifiable;
+    use HasApiTokens, HasFactory, HasGroups, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, MustVerifyEmailTrait, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -43,7 +45,6 @@ class User extends Authenticatable implements CachetUser, FilamentUser, HasAppAu
         'name',
         'email',
         'password',
-        'is_admin',
         'preferred_locale',
     ];
 
@@ -67,7 +68,6 @@ class User extends Authenticatable implements CachetUser, FilamentUser, HasAppAu
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_admin' => 'bool',
         ];
     }
 
@@ -77,14 +77,6 @@ class User extends Authenticatable implements CachetUser, FilamentUser, HasAppAu
     public function canAccessPanel(Panel $panel): bool
     {
         return true;
-    }
-
-    /**
-     * Determine if the user is an admin.
-     */
-    public function isAdmin(): bool
-    {
-        return $this->is_admin;
     }
 
     /**

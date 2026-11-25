@@ -93,7 +93,7 @@ it('falls back to the default favicon when the uploaded file is gone', function 
 
 it('uses the custom favicon in the dashboard', function () {
     Filament::setCurrentPanel(Filament::getPanel('cachet'));
-    $this->actingAs(User::factory()->create(['is_admin' => true]));
+    $this->actingAs(User::factory()->administrator()->create());
 
     $this->get(ManageTheme::getUrl())->assertSee('vendor/cachethq/cachet/favicon.ico');
 

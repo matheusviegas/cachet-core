@@ -5,6 +5,7 @@ namespace Cachet\Filament\Resources\ApiKeys;
 use Cachet\Cachet;
 use Cachet\Filament\Resources\ApiKeys\Pages\CreateApiKey;
 use Cachet\Filament\Resources\ApiKeys\Pages\ListApiKeys;
+use Cachet\Permissions;
 use Filament\Actions\BulkAction;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\CheckboxList;
@@ -20,11 +21,17 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class ApiKeyResource extends Resource
 {
     protected static ?string $model = PersonalAccessToken::class;
+
+    public static function canAccess(): bool
+    {
+        return Permissions::allows(Permissions::API_KEYS);
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -67,6 +74,7 @@ class ApiKeyResource extends Resource
                         ->hint(__('cachet::api_key.form.abilities_hint'))
                         ->hintColor('warning')
                         ->options(self::getAbilities())
+                        ->nestedRecursiveRules([Rule::in(array_keys(self::getAbilities()))])
                         ->columns(3)
                         ->columnSpanFull(),
                 ]),
@@ -139,7 +147,11 @@ class ApiKeyResource extends Resource
         return trans_choice('cachet::api_key.resource_label', 2);
     }
 
-    /** @return array<string, string> */
+    /**
+     * Only offer the abilities the user holds; tokens never exceed their owner.
+     *
+     * @return array<string, string>
+     */
     private static function getAbilities(): array
     {
         $abilities = [];
@@ -147,6 +159,11 @@ class ApiKeyResource extends Resource
         foreach (Cachet::getResourceApiAbilities() as $resource => $apiAbilities) {
             foreach ($apiAbilities as $ability) {
                 $key = "{$resource}.{$ability}";
+
+                if (! Permissions::allows($key)) {
+                    continue;
+                }
+
                 $abilities[$key] = Str::headline(__('cachet::api_key.abilities_label', [
                     'ability' => $ability,
                     'resource' => Str::plural($resource),

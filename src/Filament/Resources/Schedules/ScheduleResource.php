@@ -11,15 +11,18 @@ use Cachet\Filament\Components\ComponentSelect;
 use Cachet\Filament\Resources\Schedules\Pages\CreateSchedule;
 use Cachet\Filament\Resources\Schedules\Pages\EditSchedule;
 use Cachet\Filament\Resources\Schedules\Pages\ListSchedules;
+use Cachet\Filament\Resources\Schedules\Pages\ViewSchedule;
 use Cachet\Filament\Resources\Schedules\RelationManagers\ComponentsRelationManager;
 use Cachet\Filament\Resources\Updates\RelationManagers\UpdatesRelationManager;
 use Cachet\Models\Schedule;
+use Cachet\Permissions;
 use Cachet\QueryBuilders\ScheduleBuilder;
 use Cachet\Settings\MailSettings;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\MarkdownEditor;
@@ -37,6 +40,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class ScheduleResource extends Resource
 {
@@ -175,6 +179,7 @@ class ScheduleResource extends Resource
             ->recordActions([
                 static::recordUpdateAction(),
                 Action::make('complete')
+                    ->authorize('update')
                     ->disabled(fn (Schedule $record): bool => $record->status === ScheduleStatusEnum::complete)
                     ->label(__('cachet::schedule.list.actions.complete'))
                     ->schema([
@@ -188,6 +193,8 @@ class ScheduleResource extends Resource
                         $action->success();
                     })
                     ->successNotificationTitle(fn (Schedule $record): string => __('cachet::schedule.list.actions.complete_success', ['name' => $record->name])),
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -205,6 +212,7 @@ class ScheduleResource extends Resource
     public static function recordUpdateAction(): Action
     {
         return Action::make('add-update')
+            ->authorize(fn (): bool => Permissions::allows('schedule-updates.manage'))
             ->disabled(fn (Schedule $record) => $record->status === ScheduleStatusEnum::complete)
             ->label(__('cachet::schedule.list.actions.record_update'))
             ->color('info')
@@ -233,6 +241,7 @@ class ScheduleResource extends Resource
             'index' => ListSchedules::route('/'),
             'create' => CreateSchedule::route('/create'),
             'edit' => EditSchedule::route('/{record}/edit'),
+            'view' => ViewSchedule::route('/{record}'),
         ];
     }
 

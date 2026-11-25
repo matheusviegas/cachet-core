@@ -16,47 +16,71 @@ class Overview extends BaseWidget
 {
     protected static ?int $sort = 1;
 
+    public static function canView(): bool
+    {
+        return IncidentResource::canViewAny()
+            || ComponentResource::canViewAny()
+            || SubscriberResource::canViewAny();
+    }
+
     protected function getColumns(): int
     {
         return 3;
     }
 
+    /**
+     * Show only the stats of resources the user may view.
+     */
     protected function getStats(): array
     {
+        return array_values(array_filter([
+            IncidentResource::canViewAny() ? $this->incidentsStat() : null,
+            ComponentResource::canViewAny() ? $this->componentsStat() : null,
+            SubscriberResource::canViewAny() ? $this->subscribersStat() : null,
+        ]));
+    }
+
+    private function incidentsStat(): Stat
+    {
         $openIncidents = Incident::query()->unresolved()->count();
+
+        return Stat::make('open_incidents', $openIncidents)
+            ->label(__('cachet::incident.overview.open_incidents_label'))
+            ->description(__('cachet::incident.overview.open_incidents_description'))
+            ->chart($this->dailyCounts('incidents'))
+            ->icon('cachet-incident')
+            ->chartColor($openIncidents > 0 ? 'danger' : 'success')
+            ->color($openIncidents > 0 ? 'danger' : 'success')
+            ->url(IncidentResource::getUrl('index'));
+    }
+
+    private function componentsStat(): Stat
+    {
         $components = app(Status::class)->components();
         $totalComponents = (int) $components->total;
         $operationalComponents = (int) $components->operational;
         $allOperational = $totalComponents === $operationalComponents;
 
-        return [
-            Stat::make('open_incidents', $openIncidents)
-                ->label(__('cachet::incident.overview.open_incidents_label'))
-                ->description(__('cachet::incident.overview.open_incidents_description'))
-                ->chart($this->dailyCounts('incidents'))
-                ->icon('cachet-incident')
-                ->chartColor($openIncidents > 0 ? 'danger' : 'success')
-                ->color($openIncidents > 0 ? 'danger' : 'success')
-                ->url(IncidentResource::getUrl('index')),
+        return Stat::make('operational_components', "{$operationalComponents} / {$totalComponents}")
+            ->label(__('cachet::component.overview.operational_components_label'))
+            ->description(__('cachet::component.overview.operational_components_description'))
+            ->icon('cachet-components')
+            ->color($allOperational ? 'success' : 'warning')
+            ->url(ComponentResource::getUrl('index'));
+    }
 
-            Stat::make('operational_components', "{$operationalComponents} / {$totalComponents}")
-                ->label(__('cachet::component.overview.operational_components_label'))
-                ->description(__('cachet::component.overview.operational_components_description'))
-                ->icon('cachet-components')
-                ->color($allOperational ? 'success' : 'warning')
-                ->url(ComponentResource::getUrl('index')),
-
-            Stat::make('total_subscribers', Subscriber::count())
-                ->label(__('cachet::subscriber.overview.total_subscribers_label'))
-                ->description(__('cachet::subscriber.overview.verified_subscribers_description', [
-                    'count' => Subscriber::query()->whereNotNull('email_verified_at')->count(),
-                ]))
-                ->chart($this->dailyCounts('subscribers'))
-                ->icon('cachet-subscribers')
-                ->chartColor('info')
-                ->color('gray')
-                ->url(SubscriberResource::getUrl('index')),
-        ];
+    private function subscribersStat(): Stat
+    {
+        return Stat::make('total_subscribers', Subscriber::count())
+            ->label(__('cachet::subscriber.overview.total_subscribers_label'))
+            ->description(__('cachet::subscriber.overview.verified_subscribers_description', [
+                'count' => Subscriber::query()->whereNotNull('email_verified_at')->count(),
+            ]))
+            ->chart($this->dailyCounts('subscribers'))
+            ->icon('cachet-subscribers')
+            ->chartColor('info')
+            ->color('gray')
+            ->url(SubscriberResource::getUrl('index'));
     }
 
     /**

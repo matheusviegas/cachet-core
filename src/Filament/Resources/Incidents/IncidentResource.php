@@ -12,16 +12,19 @@ use Cachet\Filament\Components\ComponentSelect;
 use Cachet\Filament\Resources\Incidents\Pages\CreateIncident;
 use Cachet\Filament\Resources\Incidents\Pages\EditIncident;
 use Cachet\Filament\Resources\Incidents\Pages\ListIncidents;
+use Cachet\Filament\Resources\Incidents\Pages\ViewIncident;
 use Cachet\Filament\Resources\Incidents\RelationManagers\ComponentsRelationManager;
 use Cachet\Filament\Resources\Updates\RelationManagers\UpdatesRelationManager;
 use Cachet\Models\Component;
 use Cachet\Models\Incident;
+use Cachet\Permissions;
 use Cachet\Settings\MailSettings;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\MarkdownEditor;
@@ -44,6 +47,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class IncidentResource extends Resource
 {
@@ -227,6 +231,8 @@ class IncidentResource extends Resource
                     ->icon(Heroicon::OutlinedEye)
                     ->url(fn (Incident $record): string => route('cachet.status-page.incident', $record))
                     ->label(__('cachet::incident.list.actions.view_incident')),
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
                 DeleteAction::make(),
             ])
@@ -248,6 +254,7 @@ class IncidentResource extends Resource
     public static function recordUpdateAction(): Action
     {
         return Action::make('add-update')
+            ->authorize(fn (): bool => Permissions::allows('incident-updates.manage'))
             ->disabled(fn (Incident $record) => $record->status === IncidentStatusEnum::fixed)
             ->label(__('cachet::incident.list.actions.record_update'))
             ->color('info')
@@ -319,6 +326,7 @@ class IncidentResource extends Resource
             'index' => ListIncidents::route('/'),
             'create' => CreateIncident::route('/create'),
             'edit' => EditIncident::route('/{record}/edit'),
+            'view' => ViewIncident::route('/{record}'),
         ];
     }
 

@@ -175,7 +175,7 @@ it('cannot create a metric without the token ability', function () {
 });
 
 it('can create a metric', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.manage']);
 
     $response = postJson('/status/api/metrics', [
         'name' => 'New Metric',
@@ -193,7 +193,7 @@ it('can create a metric', function () {
 });
 
 it('can create a metric with a calc type, display chart and places', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.manage']);
 
     $response = postJson('/status/api/metrics', [
         'name' => 'New Metric',
@@ -213,7 +213,7 @@ it('can create a metric with a calc type, display chart and places', function ()
 });
 
 it('cannot create a metric with invalid places', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.manage']);
 
     $response = postJson('/status/api/metrics', [
         'name' => 'New Metric',
@@ -250,7 +250,7 @@ it('cannot update a metric without the token ability', function () {
 });
 
 it('can update a metric', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.manage']);
 
     $metric = Metric::factory()->create();
 
@@ -266,7 +266,7 @@ it('can update a metric', function () {
 });
 
 it('can update a metric threshold', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.manage']);
 
     $metric = Metric::factory()->create(['threshold' => 5]);
 
@@ -301,7 +301,7 @@ it('can list metrics with points included', function () {
 });
 
 it('can update a metric without a name', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.manage']);
 
     $metric = Metric::factory()->create(['name' => 'Original Name']);
 
@@ -317,7 +317,7 @@ it('can update a metric without a name', function () {
 });
 
 it('cannot update a metric with bad data', function (array $payload) {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.manage']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.manage']);
 
     $metric = Metric::factory()->create();
 
@@ -349,7 +349,7 @@ it('cannot delete a metric without the token ability', function () {
 });
 
 it('can delete metric', function () {
-    Sanctum::actingAs(User::factory()->create(), ['metrics.delete']);
+    Sanctum::actingAs(User::factory()->administrator()->create(), ['metrics.delete']);
 
     $metric = Metric::factory()->hasMetricPoints(1)->create();
 

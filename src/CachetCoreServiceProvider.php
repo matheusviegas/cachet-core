@@ -22,10 +22,19 @@ use Cachet\Models\Component;
 use Cachet\Models\ComponentCheck;
 use Cachet\Models\ComponentGroup;
 use Cachet\Models\ComponentUptimeDay;
+use Cachet\Models\Group;
 use Cachet\Models\Incident;
+use Cachet\Models\IncidentTemplate;
+use Cachet\Models\Metric;
+use Cachet\Models\MetricPoint;
 use Cachet\Models\Schedule;
 use Cachet\Models\Subscriber;
+use Cachet\Models\Update;
 use Cachet\Models\WebhookAttempt;
+use Cachet\Models\WebhookSubscription;
+use Cachet\Policies\GroupPolicy;
+use Cachet\Policies\ResourcePolicy;
+use Cachet\Policies\UpdatePolicy;
 use Cachet\Settings\AppSettings;
 use Cachet\Settings\CustomizationSettings;
 use Cachet\Settings\MailSettings;
@@ -41,6 +50,7 @@ use Dedoc\Scramble\Support\RouteInfo;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Console\AboutCommand;
@@ -48,6 +58,7 @@ use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -89,6 +100,24 @@ class CachetCoreServiceProvider extends ServiceProvider
         CustomizationSettings::class,
         MailSettings::class,
         ThemeSettings::class,
+    ];
+
+    /**
+     * The permission resource guarding each model.
+     *
+     * @var array<class-string<Model>, string>
+     */
+    private const POLICY_RESOURCES = [
+        Component::class => 'components',
+        ComponentCheck::class => 'components',
+        ComponentGroup::class => 'component-groups',
+        Incident::class => 'incidents',
+        IncidentTemplate::class => 'incident-templates',
+        Metric::class => 'metrics',
+        MetricPoint::class => 'metric-points',
+        Schedule::class => 'schedules',
+        Subscriber::class => 'subscribers',
+        WebhookSubscription::class => 'webhooks',
     ];
 
     /**
@@ -168,6 +197,7 @@ class CachetCoreServiceProvider extends ServiceProvider
             'subscriber' => Subscriber::class,
         ]);
 
+        $this->registerPolicies();
         $this->registerCommands();
         $this->registerSchedules();
         $this->registerResources();
@@ -188,6 +218,26 @@ class CachetCoreServiceProvider extends ServiceProvider
         ]);
 
         $this->configureScramble();
+    }
+
+    /**
+     * Guard Cachet's models with group permissions.
+     *
+     * Most models share ResourcePolicy, so each gets a container binding
+     * that builds it for its resource, e.g. "cachet.policy.incidents".
+     */
+    private function registerPolicies(): void
+    {
+        foreach (self::POLICY_RESOURCES as $model => $resource) {
+            $binding = "cachet.policy.{$resource}";
+
+            $this->app->singletonIf($binding, fn (): ResourcePolicy => new ResourcePolicy($resource));
+
+            Gate::policy($model, $binding);
+        }
+
+        Gate::policy(Update::class, UpdatePolicy::class);
+        Gate::policy(Group::class, GroupPolicy::class);
     }
 
     /**

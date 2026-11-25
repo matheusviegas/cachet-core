@@ -6,6 +6,7 @@ use Cachet\Actions\Component\ChangeComponentStatus;
 use Cachet\EffectiveComponentStatuses;
 use Cachet\Enums\ComponentStatusEnum;
 use Cachet\Enums\ComponentStatusSourceEnum;
+use Cachet\Filament\Resources\Components\ComponentResource;
 use Cachet\Filament\Widgets\Concerns\PollsFromAppSettings;
 use Cachet\Models\Component;
 use Filament\Notifications\Notification;
@@ -30,6 +31,11 @@ class Components extends TableWidget
 
     protected static ?int $sort = 4;
 
+    public static function canView(): bool
+    {
+        return ComponentResource::canViewAny();
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -52,6 +58,7 @@ class Components extends TableWidget
                     ->state(fn (Component $record): ComponentStatusEnum => app(EffectiveComponentStatuses::class)->of($record))
                     ->badge(),
                 SelectColumn::make('status')
+                    ->authorize('update')
                     ->label(__('cachet::dashboard.components.baseline_status'))
                     ->options(ComponentStatusEnum::class)
                     ->selectablePlaceholder(false)

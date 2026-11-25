@@ -14,7 +14,7 @@ return [
         'expires_at_helper' => 'Expires at midnight. Leave empty for no expiration date.',
         'expires_at_validation' => 'The expiration date must be in the future.',
         'abilities_label' => 'Permissions',
-        'abilities_hint' => 'Leave this empty to give the token full permissions.',
+        'abilities_hint' => 'Leaving empty grants every permission you hold',
     ],
     'list' => [
         'actions' => [

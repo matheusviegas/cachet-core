@@ -5,12 +5,14 @@ namespace Cachet\Filament\Resources\Subscribers;
 use Cachet\Filament\Resources\Subscribers\Pages\CreateSubscriber;
 use Cachet\Filament\Resources\Subscribers\Pages\EditSubscriber;
 use Cachet\Filament\Resources\Subscribers\Pages\ListSubscribers;
+use Cachet\Filament\Resources\Subscribers\Pages\ViewSubscriber;
 use Cachet\Models\Subscriber;
 use Cachet\Settings\MailSettings;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\KeyValue;
@@ -21,6 +23,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class SubscriberResource extends Resource
 {
@@ -94,6 +97,7 @@ class SubscriberResource extends Resource
             ])
             ->recordActions([
                 Action::make('verify')
+                    ->authorize('update')
                     ->label(__('cachet::subscriber.list.actions.verify_label'))
                     ->color('warning')
                     ->action(function (Action $action, Subscriber $record): void {
@@ -105,6 +109,7 @@ class SubscriberResource extends Resource
                     ->requiresConfirmation()
                     ->hidden(fn (Subscriber $record): bool => $record->hasVerifiedEmail()),
                 Action::make('resend-verification')
+                    ->authorize('update')
                     ->label(__('cachet::subscriber.list.actions.resend_verification_label'))
                     ->color('gray')
                     ->action(function (Subscriber $record) {
@@ -117,6 +122,8 @@ class SubscriberResource extends Resource
                             ->send();
                     })
                     ->hidden(fn (Subscriber $record): bool => $record->hasVerifiedEmail()),
+                ViewAction::make()
+                    ->hidden(fn (Model $record): bool => static::canEdit($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([
@@ -141,6 +148,7 @@ class SubscriberResource extends Resource
             'index' => ListSubscribers::route('/'),
             'create' => CreateSubscriber::route('/create'),
             'edit' => EditSubscriber::route('/{record}/edit'),
+            'view' => ViewSubscriber::route('/{record}'),
         ];
     }
 

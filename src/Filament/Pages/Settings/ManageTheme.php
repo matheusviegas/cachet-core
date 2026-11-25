@@ -25,7 +25,8 @@ class ManageTheme extends SettingsPage
 
     public static function canAccess(): bool
     {
-        return Cachet::canAccessDashboardFeature('themes');
+        return parent::canAccess()
+            && Cachet::canAccessDashboardFeature('themes');
     }
 
     public static function getNavigationGroup(): ?string

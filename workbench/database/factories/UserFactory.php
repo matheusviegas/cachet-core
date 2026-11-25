@@ -2,11 +2,14 @@
 
 namespace Workbench\Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Cachet\Database\Factories\UserFactory as CachetUserFactory;
 use Illuminate\Support\Str;
 use Workbench\App\User;
 
-class UserFactory extends Factory
+/**
+ * Extends Cachet's factory to share its group states.
+ */
+class UserFactory extends CachetUserFactory
 {
     /**
      * The name of the factory's corresponding model.
@@ -18,9 +21,9 @@ class UserFactory extends Factory
     /**
      * Define the model's default state.
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function definition()
+    public function definition(): array
     {
         return [
             'name' => $this->faker->name(),
@@ -43,15 +46,5 @@ class UserFactory extends Factory
                 'active' => true,
             ];
         });
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
     }
 }

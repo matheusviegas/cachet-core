@@ -18,6 +18,11 @@ class SystemHealth extends Widget
 
     protected static ?int $sort = 0;
 
+    public static function canView(): bool
+    {
+        return ComponentResource::canViewAny();
+    }
+
     protected function getViewData(): array
     {
         $status = app(Status::class);
@@ -27,7 +32,7 @@ class SystemHealth extends Widget
             'systemStatus' => $status->current(),
             'totalComponents' => (int) $components->total,
             'statusCounts' => $this->statusCounts($components),
-            'createComponentUrl' => ComponentResource::getUrl('create'),
+            'createComponentUrl' => ComponentResource::canCreate() ? ComponentResource::getUrl('create') : null,
             'pollingInterval' => $this->getPollingInterval(),
         ];
     }

@@ -12,7 +12,7 @@ beforeEach(function () {
 });
 
 it('lets any user choose the dashboard language in their profile', function () {
-    $user = User::factory()->create(['is_admin' => false, 'preferred_locale' => 'en']);
+    $user = User::factory()->create(['preferred_locale' => 'en']);
     actingAs($user);
 
     livewire(EditProfile::class)
@@ -25,7 +25,7 @@ it('lets any user choose the dashboard language in their profile', function () {
 });
 
 it('stores the system default as no preference', function () {
-    $user = User::factory()->create(['is_admin' => false, 'preferred_locale' => 'pt_BR']);
+    $user = User::factory()->create(['preferred_locale' => 'pt_BR']);
     actingAs($user);
 
     livewire(EditProfile::class)
@@ -37,7 +37,7 @@ it('stores the system default as no preference', function () {
 });
 
 it('rejects unsupported languages', function () {
-    $user = User::factory()->create(['is_admin' => false, 'preferred_locale' => 'en']);
+    $user = User::factory()->create(['preferred_locale' => 'en']);
     actingAs($user);
 
     livewire(EditProfile::class)
@@ -49,7 +49,7 @@ it('rejects unsupported languages', function () {
 });
 
 it('shows the dashboard in the chosen language', function () {
-    actingAs(User::factory()->create(['is_admin' => false, 'preferred_locale' => 'pt_BR']));
+    actingAs(User::factory()->create(['preferred_locale' => 'pt_BR']));
 
     $this->get(EditProfile::getUrl())
         ->assertOk()
@@ -58,7 +58,7 @@ it('shows the dashboard in the chosen language', function () {
 });
 
 it('follows the browser language without a preference', function (?string $preference) {
-    actingAs(User::factory()->create(['is_admin' => false, 'preferred_locale' => $preference]));
+    actingAs(User::factory()->create(['preferred_locale' => $preference]));
 
     $this->get(EditProfile::getUrl(), ['Accept-Language' => 'pt-BR,pt;q=0.9'])
         ->assertOk()

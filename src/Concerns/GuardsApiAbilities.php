@@ -15,7 +15,7 @@ trait GuardsApiAbilities
         /** @var User $user */
         $user = auth()->user();
 
-        if (! $user->tokenCan($ability)) {
+        if (! $user->tokenCan($ability) || ! $user->hasPermission($ability)) {
             throw new MissingAbilityException($ability);
         }
     }
@@ -26,9 +26,14 @@ trait GuardsApiAbilities
      * Unlike guard(), this never throws and resolves the caller through the
      * Sanctum guard, so it is safe to call on the read routes that carry no
      * auth middleware. First-party sessions and read-only tokens return false.
+     * A token never exceeds the permissions of its owner's groups.
      */
     protected function tokenCan(string $ability): bool
     {
-        return (bool) auth('sanctum')->user()?->tokenCan($ability);
+        $user = auth('sanctum')->user();
+
+        return $user instanceof CachetUser
+            && $user->tokenCan($ability)
+            && $user->hasPermission($ability);
     }
 }
