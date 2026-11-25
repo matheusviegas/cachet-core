@@ -85,6 +85,13 @@ php artisan cachet:record-uptime --days=90
 
 Rows older than `CACHET_UPTIME_RETENTION_DAYS` (365 by default) are pruned daily.
 
+## Cache Requirements
+
+The dashboard's success toasts ("Created", "Saved", and so on) are stored in the application cache between requests, in the store set by `filament.cache_store` (the default cache store when unset). Use a persistent cache:
+
+- `CACHE_STORE=array` drops every toast, because the array store only lives for one request.
+- With more than one application server, use a shared store such as `database` or `redis`. With `file`, a toast written on one server is not seen by the others.
+
 ## Roadmap
 
 Planned work for large deployments, such as monitoring RPA robots:
